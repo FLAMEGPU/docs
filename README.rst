@@ -1,8 +1,5 @@
-.. image:: https://travis-ci.org/???
-    :target: https://travis-ci.org/???
-
-.. image:: https://readthedocs.org/???
-:target: http://???.readthedocs.io/??
+.. image:: https://readthedocs.org/projects/flamegpu/badge/?version=latest
+:target: http://flamegpu.readthedocs.io/en/latest/?badge=latest
 :alt: Documentation Status
     
 FLAME GPU TEchnical Report and User Guide Documentation

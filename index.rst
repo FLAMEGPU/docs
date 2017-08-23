@@ -9,6 +9,7 @@ FLAMEGPU Documentation and User guide
 This is the FLAME GPU docs
 
 .. toctree::
+   :numbered:
    
    flamegpu/introduction
    flamegpu/modelspec

@@ -315,7 +315,7 @@ For clarity the agent output API function prototype (normally found in ``header.
         return 0;
     }
 
-
+.. TODO: Creating agents on the host
 
 Using Random Number Generation
 ==============================
@@ -361,153 +361,185 @@ When specifying an agent function declaration this order must be observed.
                                     xmachine_message_*message_name*_list* output_messages,
                                     RNG_rand48* rand48);
 
+                                    
+Host Simulation Hooks
+=====================
 
+Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code, but are able to execute GPU Runtime Host Functions \cef{????}. Host simulation Hooks are defined in the dynamically created file `simulation.cu`. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
+
+Initialisation Functions
+------------------------
+
+Any initialisation functions defined within the XMML model file (see \cref{sec:223}) is expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
+The initialisation function declaration should be preceded with a `__FLAME_GPU_INIT_FUNC__` macro definition, should have no arguments and should return void.
+The below example demonstrated an initialisation function named `initConstants` which uses the simulation APIs dynamically created constants functions to set a constant named `A_CONSTANT`. 
+
+.. code-block:: c
+   :linenos:
+ 
+    __FLAME_GPU_INIT_FUNC__ void initConstants()
+    {
+        float const_value = 8.25f;
+        set_A_CONSTANT(&const_value);
+    }
+
+
+
+Step Functions
+--------------
+
+If a step function was defined in the XMMl model file (section \ref{sec:stepFunc}) then it should be defined in a similar way to the initialisation functions as described above in section \ref{sec:391}. These functions will be called after each iteration step. An example is shown below. A common use of a step functions is to output logs from analytics functions when full agent XML output is not required. In this case an init or step function can be used for creating and closing a file handle respectively.
+
+.. code-block:: c
+   :linenos:
+   
+    __FLAME_GPU_STEP_FUNC__ void some_step_func()
+    {
+        do_step_operation();
+    }
+
+
+
+Exit Functions
+--------------
+
+If an exit function was defined in the XMMl model file (section \ref{sec:endFunc}) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below. 
+
+.. code-block:: c
+   :linenos:
+   
+    __FLAME_GPU_EXIT_FUNC__ void some_exit_func()
+    {
+        calculate_agent_position_average();
+        print_to_file();
+    }
+
+                                    
+                                    
+
+Runtime Host Functions
+======================
+             
+Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations.
+             
 Setting Simulation Constants (Global Variables)
-===============================================
-
+-----------------------------------------------
 
 Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variable definition (see \cref{sec:221}).
 It is not possible to set constant variables within an agent function however, the simulation API creates methods for setting simulation constants which may be called either at the start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).
-The code below demonstrates the function prototype for setting a simulation constant with the name \verb|A_CONSTANT|.
+The code below demonstrates the function prototype for setting a simulation constant with the name `A_CONSTANT`.
+
+.. code-block:: c
+
+    extern "C" void set_A_CONSTANT (float* h_A_CONSTANT);
 
 
-\begin{lstlisting}[language=C_]
-extern "C" void set_A_CONSTANT (float* h_A_CONSTANT);
-\end{lstlisting}
+The function is declared using the `extern` keyword which allows it to be linked to by externally compiled code such as a visualisation or custom simulation loop.
 
-The function is declared using the \verb|extern| keyword which allows it to be linked to by externally compiled code such as a visualisation or custom simulation loop.
-
-\subsection{Initialisation Functions}
-\label{sec:391}
+.. TODO get for env constants
+.. TOD get and set for array constants
 
 
-Any initialisation functions defined within the XMML model file (see \cref{sec:223}) are expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
-The initialisation function declaration should be preceded with a \verb|__FLAME_GPU_INIT_FUNC__| macro definition, should have no arguments and should return void.
-The below example demonstrated an initialisation function named initConstants which uses the simulation APIs dynamically created constants functions to set a constant named \verb|A_CONSTANT|. 
 
-\begin{lstlisting}[language=C_]
-__FLAME_GPU_INIT_FUNC__ void initConstants()
-{
-    float const_value = 8.25f;
-    set_A_CONSTANT(&const_value);
-}
-\end{lstlisting}
+Sorting agents
+--------------
+
+Each `CONTINUOUS` type agent can be sorted based on key value pairs which come from agent variables. This can be particularly useful for rendering. A function for sorting each agent (named `*agent*`) state list (in the below example the state is named `default`) is created with the folowing format.
+
+.. code-block:: c
+
+    void sort_*agent*_default(void (*generate_key_value_pairs)(unsigned int* keys, unsigned int* values, xmachine_memory_*agent*_list* agents))
 
 
-\subsection{Step Functions}
-\label{sec:stepFuncScript}
+The function takes as an argument a function pointer to a GPU `__global__` function. This function it points to takes two unsigned int arrays in which it will store the resulting key and value data, and `xmachine_memory_*agent*_list` which contains a structure of arrays of the agent. This type is generated dynamically depending on the agent variables defined in the XML model file (section \ref{sec:231}). For an agent with two float variables `x` and `y`, it has the following structure:
 
-If a step function was defined in the XMMl model file (section \ref{sec:stepFunc}) then it should be defined in a similar way to the initialisation functions as described above in section \ref{sec:391}. These functions will be called after each iteration step. An example is shown below
+.. code-block:: c
+   :linenos:
+   
+    struct xmachine_memory_*agent*_list 
+    {	
+        float x [xmachine_memory_*agent*_MAX];
+        float y [xmachine_memory_*agent*_MAX];
+    }
 
-\begin{lstlisting}[language=C_]
-__FLAME_GPU_STEP_FUNC__ void some_step_func()
-{
-    do_step_operation();
-}
-\end{lstlisting}
+
+The value `xmachine_memory_agent_MAX` is the and buffer size of number of agents (section \ref{sec:23}). This struct can be accessed to assign agent data to the key and value arrays. The following example is given within a FLAME step function which sorts agents by 1D position
+
+.. code-block:: c
+   :linenos:
+  
+    __global__ void gen_keyval_pairs(unsigned int* keys, unsigned int* values, xmachine_memory_agent_list* agents) {
+        int index = (blockIdx.x*blockDim.x) + threadIdx.x;
+
+        //Number of agents
+        const int n = xmachine_memory_agent_MAX;
+
+        if (index < n) {
+            //set value
+            values[index] = index;
+            //set key
+            keys[index] = agents->x[index];
+        }
+    }
+
+    __FLAME_GPU_STEP_FUNC__ void sort_func() {
+        
+        //Pointer function taking arguments specified within sort_agent_default
+        void (*func_ptr)(unsigned int*, unsigned int*, xmachine_memory_agent_list*) = &gen_keyval_pairs;
+        
+        //sort the key value pairs initialized within argument function
+        sort_agent_default(func_ptr);
+        
+        //Since we run GPU code, make sure all threads are synchronized.
+        cudaDeviceSynchronize();
+    }
+
+Analytics functions
+-------------------
+
+A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count* function will only be created for single-value (not array) `int` variables. Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
+
+.. code-block:: c
+   :linenos:
+   
+    reduce_agentName_default_varName_variable();
+    count_agentName_default_varName_variable(int count_value);
 
 
-\subsection{Exit Functions}
-\label{sec:exitFuncScript}
+Instrumentation for timing and population sizes
+===============================================
 
-If an exit function was defined in the XMMl model file (section \ref{sec:endFunc}) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below
-
-\begin{lstlisting}[language=C_]
-__FLAME_GPU_EXIT_FUNC__ void some_exit_func()
-{
-    calculate_agent_position_average();
-    print_to_file();
-}
-\end{lstlisting}
-
-\section{Instrumentation for timing and population sizes}
-\label{sec:TimingAndPop}
-
-It is possible to obtain information of population and timings of different functions by taking advantage of cuda timing events. Per-iteration and per-function (init/agent/step/exit functions) timing using CUDA events, and also the population size for each agent state per iteration printed to stdout.
+It is possible to obtain information of population and timings of different functions by taking advantage of CUDA timing events. Per-iteration and per-function (init/agent/step/exit functions) timing using CUDA events, and also the population size for each agent state per iteration printed to `stdout`.
 
 This instrumentation is enabled with a set of defines. The value must be a positive non-zero integer (i.e. 1) to be enabled.
 
-When enabled, the relevant measures are printed to stdout, which can then later be parsed to produce graphs, etc.
+When enabled, the relevant measures are printed to `stdout`, which can then later be parsed (or redirected) to produce graphs, etc.
 
-\begin{lstlisting}[language=C_]
-#define INSTRUMENT_ITERATIONS 1
-#define INSTRUMENT_AGENT_FUNCTIONS 1
-#define INSTRUMENT_INIT_FUNCTIONS 1
-#define INSTRUMENT_STEP_FUNCTIONS 1
-#define INSTRUMENT_EXIT_FUNCTIONS 1
-#define OUTPUT_POPULATION_PER_ITERATION 1
-\end{lstlisting}
+.. code-block:: c
+   :linenos:
+  
+    #define INSTRUMENT_ITERATIONS 1
+    #define INSTRUMENT_AGENT_FUNCTIONS 1
+    #define INSTRUMENT_INIT_FUNCTIONS 1
+    #define INSTRUMENT_STEP_FUNCTIONS 1
+    #define INSTRUMENT_EXIT_FUNCTIONS 1
+    #define OUTPUT_POPULATION_PER_ITERATION 1
 
-will print out, for example
-\begin{lstlisting}[language=C_]
-processing Simulation Step 1
-Instrumentation: Circle_outputdata = 0.304128 (ms)
-Instrumentation: Circle_inputdata = 16.849920 (ms)
-Instrumentation: Circle_move = 0.261120 (ms)
-FLAME GPU Step function. Average circle position is (4115.978027, 4139.279785, 512.000000)
-Instrumentation: stepFunction = 27.652096 (ms)
-agent_Circle_default_count: 1024
-Instrumentation: Iteration Time = 46.309376 (ms)
-Iteration 1 Saved to XML
-\end{lstlisting}
 
-\section{Simulation functions}
+will print out, for example (using the circles benchmark model)
 
-These simulation functions are ran independent of agents. More technically they are called on the CPU, but are able to execute GPU functions using the usual CUDA notation. These functions are defined in the dynamically created file \verb|simulation.cu|. There are numerous functions which can be called which will be explained in the proceeding sections. These functions can be called during any host/CPU function such as the init, step and end FLAME calls (see section \ref{sec:223} to \ref{sec:endFunc} and \ref{sec:391} to \ref{sec:endFuncScript}).
 
-\subsection{Sort agents}
+.. code-block:: bash
+   :linenos:
 
-%function definition
-\begin{lstlisting}[language=C_]
-void sort_agent_default(void (*generate_key_value_pairs)(unsigned int* keys, unsigned int* values, xmachine_memory_agent_list* agents))
-\end{lstlisting}
+    processing Simulation Step 1
+    Instrumentation: Circle_outputdata = 0.304128 (ms)
+    Instrumentation: Circle_inputdata = 16.849920 (ms)
+    Instrumentation: Circle_move = 0.261120 (ms)
+    FLAME GPU Step function. Average circle position is (4115.978027, 4139.279785, 512.000000)
+    Instrumentation: stepFunction = 27.652096 (ms)
+    agent_Circle_default_count: 1024
+    Instrumentation: Iteration Time = 46.309376 (ms)
+    Iteration 1 Saved to XML
 
-%description of function
-This function will sort the agent type called \mintinline[fontsize=\small]{text}{agent} using key-value pairs. The function takes as an argument a function pointer to a GPU \mintinline[fontsize=\small]{text}{__global__} function. This function it points to takes two unsigned int arrays in which it will store the resulting key and value data, and \mintinline[fontsize=\small]{text}{xmachine_memory_agent_list} which contains a structure of arrays of the agent. This type is generated dynamically depending on the agent variables defined in the XML model file (section \ref{sec:231}). For an agent with 2 float variables x and y, it has the following structure:
-
-\begin{lstlisting}[language=C_]
-struct xmachine_memory_pedestrian_list 
-{	
-    float x [xmachine_memory_agent_MAX];
-    float y [xmachine_memory_agent_MAX];
-}
-\end{lstlisting}
-
-The value \mintinline[fontsize=\small]{text}{xmachine_memory_agent_MAX} is the and buffer size of number of agents (section \ref{sec:23}). This struct can be accessed to assign agent data to the key and value arrays. The following example is given within a FLAME step function which sorts agents by 1D position
-
-\begin{lstlisting}[language=C_]
-__global__ void gen_keyval_pairs(unsigned int* keys, unsigned int* values, xmachine_memory_agent_list* agents) {
-	int index = (blockIdx.x*blockDim.x) + threadIdx.x;
-
-	//Number of agents
-	const int n = xmachine_memory_agent_MAX;
-
-	if (index < n) {
-		//set value
-		values[index] = index;
-		//set key
-		keys[index] = agents->x[index];
-	}
-}
-
-__FLAME_GPU_STEP_FUNC__ void sort_func() {
-	
-	//Pointer function taking arguments specified within sort_agent_default
-	void (*func_ptr)(unsigned int*, unsigned int*, xmachine_memory_agent_list*) = &gen_keyval_pairs;
-    
-	//sort the key value pairs initialized within argument function
-	sort_agent_default(func_ptr);
-	
-    //Since we run GPU code, make sure all threads are synchronized.
-	cudaDeviceSynchronize();
-}
-\end{lstlisting}
-
-\subsection{Analytic functions}
-A dynamically generated reduce is made for all agent variables for each state. Dynamically generated count will only occur for single-values int variables. Reduce sums over a particular variable type for all agents in a state and returns the grand total. Count checks how many values are equal to the given input and returns the quantity that match. These can be called from any \verb|__FLAME_GPU__| init, step and end func.Technical: calls thrust reduce or count. 
-
-\begin{lstlisting}[language=C_]
-reduce_name_state_varName_variable();
-count_name_state_varName_variable(int count_value);
-\end{lstlisting}
 

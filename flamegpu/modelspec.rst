@@ -32,7 +32,7 @@ The Environment
 ===============
 
 The environment element is used to hold global information which relates to the simulation.
-This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see \Cref{ch:3}) and an optional number of initialisation, step and exit functions.
+This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`) and an optional number of initialisation, step and exit functions.
 
 .. code-block:: xml
    :linenos:
@@ -54,7 +54,7 @@ Simulation constants are defined as (global) variables and may be of type int, f
 Constant variables must each have a unique name which is used to reference them within simulation code and can have an optional static array length (of size greater than 0).
 The description element arrayLength element and defaultValue element are all optional.
 The below code shows the specification of two constant variables: the first represents a single ``int`` constant (with a default value of ``1``), the second indicates an ``int`` array of length ``5``.
-Simulation constants can be set either as default values as show below, within the initial agent XML file (see \cref{271}) or at run-time are described in \cref{sec:39}. Values set in initial XML values will overwrite a default value and values which are set at runtime will overwrite values set in initial agent XML files.
+Simulation constants can be set either as default values as show below, within the initial agent XML file (see :ref:`Initial Simulation Constants`) or at run-time are described in :ref:`Host Simulation Hooks`. Values set in initial XML values will overwrite a default value and values which are set at runtime will overwrite values set in initial agent XML files.
 
 .. code-block:: xml
    :linenos:
@@ -79,7 +79,7 @@ Function Files
 --------------
 
 The ``functionFiles`` element is not optional and must contain a single file element which defines the name of a source code file which holds the scripted agent functions.
-More details on the format of the function file are given in \Cref{ch:3}.
+More details on the format of the function file are given in :ref:`Agent Function Scripts and the Simulation API`.
 The example below shows the correct XML format for a function file named ``functions.c``.
 
 .. code-block:: xml
@@ -96,7 +96,7 @@ Initialisation Functions
 Initialisation functions are user defined functions which can be used to set constant global variables. 
 Any initialisation functions defined within the ``initFunctions`` element are called a single time by the automatically generated simulation code in the order that they appear during the initialisation of the simulation. 
 If an ``initFunctions`` element is specified there must be at least a single ``initFunction`` child element with a unique name. 
-\Cref{sec:391} demonstrates how to specify initialisation functions within a function file.
+:ref:`Initialisation Functions` demonstrates how to specify initialisation functions within a function file.
 
 .. code-block:: xml
    :linenos:
@@ -153,7 +153,7 @@ There is no performance disadvantage to using a large ``bufferSize`` however it 
 It is recommended that the bufferSize always be a power of two number (i.e. ``1024``, ``2048``, ``4096``, ``16384``, etc) as it will most likely be rounded to one during simulation.
 For discrete agents the bufferSize is strictly limited to only power of 2 numbers which have squarely divisible dimensions (i.e. the square of the bufferSize must be a whole number).
 If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit.
-Each expandable aspect of an XMML agent representation in the below example is discussed within this section with the exception of agent functions, which due to their dependence of the definition of messages, are discussed later in \cref{sec:25}.
+Each expandable aspect of an XMML agent representation in the below example is discussed within this section with the exception of agent functions, which due to their dependence of the definition of messages, are discussed later in :ref:`Defining an Agent function`.
 
 .. code-block:: xml
    :linenos:
@@ -182,7 +182,7 @@ Agent Memory
 Agent memory consists of a number of variables (at least one) which are use to hold information.
 An agent ``variable`` must have a unique ``name`` and may be of ``type`` ``int``, ``float`` or ``double`` (CUDA compute capability 1.3 or beyond).
 Default values are always ``0`` unless a ``defaultValue`` element is specified or if a value is specified within the XML input states file (which supersedes the default value).
-There are no specified limits on the maximum number of agent variables however the performance tips noted in \cref{sec:47} should be taken into account.
+There are no specified limits on the maximum number of agent variables however the performance tips noted in :ref:`Performance Tips` should be taken into account.
 Agent memory can also be defined as static sized array. Below shows an example of agent memory containing four agent variables representing an agent identifier, two positional values (one with a default value) and a list of numbers.
 
 .. code-block:: xml
@@ -335,7 +335,7 @@ The space within the defined bounds is partitioned according to the radius with 
 .. math::
     P = ceiling((max\_bound - min\_bound) / radius)
 
-The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in \cref{sec:352}) which holds the indices of messages within each area of partitioned space.
+The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space.
 Spatially partitioned message iteration can then iterate a varying number of messages from a fixed number of adjacent partitions in partition space to ensure each message within the specified radius has been considered.
 The following example defines a spatial partition in three dimensions.
 For continuously spaced agents in 2D space ``P`` in the x z dimension should be equal to ``1`` and therefore a ``zmin`` of ``0`` would require a ``zmax`` value equal to ``radius`` (even in this case a message variable with name ``z`` is still required).
@@ -368,9 +368,9 @@ The current state is defined within the ``currentState`` element and is used to 
 After completing the agent function agents then move into the state specified within the ``nextState`` element.
 Both the current and ``nextState`` values are required to have values which exist as a state/name within the state list (states) definition.
 The ``reallocate`` element is used as an optional flag to indicate the possibility that an agent performing the agent function may die as a result (and hence require removing from the agent population).
-By default this value is assumed ``true`` however if a value of false is specified then the processes for removing dead agents will not be executed even if an agent indicates it has died (see agent function definitions in \cref{sec:33}).
+By default this value is assumed ``true`` however if a value of false is specified then the processes for removing dead agents will not be executed even if an agent indicates it has died (see agent function definitions in :ref:`Defining an Agent function`).
 The ``RNG`` element represents a flag to indicate the requirement of random number generation within the agent function.
-If this value is ``true`` then an additional argument (demonstrated in \cref{sec:37}) is passed to the agent function which holds a number of seeds used for parallel random number generation.
+If this value is ``true`` then an additional argument (demonstrated in :ref:`Using Random Number Generation`) is passed to the agent function which holds a number of seeds used for parallel random number generation.
 
 
 .. code-block:: xml
@@ -591,7 +591,7 @@ Following this an element may exist for each of the named agents memory variable
 Each named element is then expected to contain a value of the same ``type`` as the agent memory variable defined.
 If the initial agent data XML file neglects to specify the value of a variable defined within an agents memory then the value is assumed to be the ``defaultValue`` otherise ``0``.
 If an element defines a variable name which does not exist within the XMML model definition then a warning is generated and the value is ignored.
-The example below represents a single agent corresponding to the agent definition in \cref{sec:23}.
+The example below represents a single agent corresponding to the agent definition in :ref:`Defining an X-Machine Agent`.
 
 .. code-block:: xml
    :linenos:
@@ -618,7 +618,7 @@ Furthermore the simulation will expect to find initial agents stored within the 
 Initial Simulation Constants
 ----------------------------
 
-Simulation constants (or global variables) specified within the model file (as described in \cref{sec:229}) can be set within the initial XML agent data within an environment label between the ``itno`` and ``xagent`` elements. Environment variables should be set within an XML element with a name corresponding to the environment variable name. E.g. An environment variable defined within the model file as;
+Simulation constants (or global variables) specified within the model file (as described in :ref:`Simulation Constants (Global Variables)`) can be set within the initial XML agent data within an environment label between the ``itno`` and ``xagent`` elements. Environment variables should be set within an XML element with a name corresponding to the environment variable name. E.g. An environment variable defined within the model file as;
 
 .. code-block:: xml
    :linenos:

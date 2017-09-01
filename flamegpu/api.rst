@@ -16,13 +16,13 @@ Likewise the simulation API functions for message communication are dependent on
 A single C source file is required to hold all agent function declarations and must contain an include directive for the file ``header.h`` which contains model specific agent and message structures.
 Agent functions are free to use many features of common C syntax with the following important exceptions: 
 
-- Globally Defined Variables: i.e. Variables declared outside of any function scope are not permitted and should instead be defined as global variables within the XMML model file and used as described in \cref{sec:221}. *Note: The use of pre-processor macro directives for constants is supported and can be freely used without restriction.*
+- Globally Defined Variables: i.e. Variables declared outside of any function scope are not permitted and should instead be defined as global variables within the XMML model file and used as described in :ref:`Simulation Constants (Global Variables)`. *Note: The use of pre-processor macro directives for constants is supported and can be freely used without restriction.*
 - Include Directives: Are permitted however as agent functions are functions which are ran on the GPU during simulation they may not call non GPU code. This implies that including and linking with non CUDA libraries is not supported.
 - External Function Calls: As above external function calls may only be made to CUDA ``__device__`` functions. Many common math functions calls such as ``sin``, ``cos``, etc. are supported via native GPU implementations and can be used in exactly the same way as standard C code. Likewise additional *helper* functions can be defined and called from agent functions by prefixing the helper function using the ``__FLAME_GPU_FUNC__`` macro (which signifies it can be run on the GPU device).
 
 The following chapter describes the syntax and use of agent function scripts including any arguments which must be passed to the agent or simulation API functions.
-As agent functions and simulation API functions are dynamic (and based on the XMML model definition) it is often easier to first define a model and use the technique described within \cref{sec:42} to automatically generate a functions file containing prototype agent function files and API system calls.
-Alternatively \cref{sec:38} describes fully the expected argument order for agent function arguments.
+As agent functions and simulation API functions are dynamic (and based on the XMML model definition) it is often easier to first define a model and use the technique described within :ref:`Generating a Functions File Template` to automatically generate a functions file containing prototype agent function files and API system calls.
+Alternatively :ref:`Summary of Agent Function Arguments` describes fully the expected argument order for agent function arguments.
 
 
 Agent and Message Data Structures
@@ -70,8 +70,8 @@ For each message type defined within the XMML model definition the dynamically g
     add_message_*name*_message(message_*name*_messages, args...);
 
 
-Where ``*name*`` refers to the value of the messages ``name`` element within the message specification and ``args`` is a list of named arguments which correspond to the message variables (see \cref{sec:241}).
-Agent functions may only call a message output function for the message name defined within the function definitions output (see \cref{sec:252}).
+Where ``*name*`` refers to the value of the messages ``name`` element within the message specification and ``args`` is a list of named arguments which correspond to the message variables (see :ref:`Message Variables`).
+Agent functions may only call a message output function for the message name defined within the function definitions output (see :ref:`Agent Function Message Outputs`).
 This restriction is enforced as message output functions require a pointer to a message list which is passed as an argument to the agent function.
 Agents are only permitted to output at most a single message per agent function and repeated calls to an add message function will result in previous message information simply being overwritten.
 The example below demonstrates an agent function ``output_message`` belonging to an agent named ``myAgent`` which outputs a message with the name ``location`` defined as having four variables.
@@ -286,7 +286,7 @@ For each agent type defined within the XMML model definition the dynamically gen
     add_*name*_agent(*name*_agents, args...);
 
 
-Where ``*name*`` refers to the value of the agents ``name`` element within the agent specification and ``args`` is a list of named arguments which correspond to the agents memory variables (see \cref{sec:253}).
+Where ``*name*`` refers to the value of the agents ``name`` element within the agent specification and ``args`` is a list of named arguments which correspond to the agents memory variables (see :ref:`Agent Function X-Agent Outputs`).
 Agent functions may only output a single type of agent and are only permitted to output a single agent per agent function.
 As with message outputs, repeated calls to an add agent function will result in previous agent information simply being overwritten.
 The example below demonstrates an agent function (``create_agent``) for an agent named ``myAgent`` which outputs a new agent by creating a clone of itself.
@@ -370,7 +370,7 @@ Host simulation hooks functions which are executed outside of the main simulatio
 Initialisation Functions
 ------------------------
 
-Any initialisation functions defined within the XMML model file (see \cref{sec:223}) is expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
+Any initialisation functions defined within the XMML model file (see :ref:`Initialisation Functions`) is expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
 The initialisation function declaration should be preceded with a `__FLAME_GPU_INIT_FUNC__` macro definition, should have no arguments and should return void.
 The below example demonstrated an initialisation function named `initConstants` which uses the simulation APIs dynamically created constants functions to set a constant named `A_CONSTANT`. 
 
@@ -425,7 +425,7 @@ Runtime host functions can be used to interact with the model outside of the mai
 Setting Simulation Constants (Global Variables)
 -----------------------------------------------
 
-Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variable definition (see \cref{sec:221}).
+Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variable definition (see :ref:`Simulation Constants (Global Variables)`).
 It is not possible to set constant variables within an agent function however, the simulation API creates methods for setting simulation constants which may be called either at the start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).
 The code below demonstrates the function prototype for setting a simulation constant with the name `A_CONSTANT`.
 

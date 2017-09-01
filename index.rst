@@ -14,4 +14,4 @@ This is the FLAME GPU docs
    flamegpu/introduction
    flamegpu/modelspec
    flamegpu/api
-   flamegpu/sim
+   flamegpu/simulation

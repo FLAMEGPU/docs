@@ -66,13 +66,16 @@ html_theme_options = {'navbar_pagenav': False,
                       'navbar_sidebarrel': False,
                       'globaltoc_includehidden': 'false',
                       'bootswatch_theme': 'cosmo',
-                      'navbar_site_name': 'FLAME GPU Documentation',
+                      'navbar_site_name': 'Navigation',
                       'navbar_title': 'FLAME GPU Docs',
                       'navbar_links': [
-                          ("Home", "index"),
+                          ("Home", "http://www.flamegpu.com", True),
+                          ("GitHub", "https://github.com/FLAMEGPU/docs", True),
+                          ("Docs Home", "index"),
                       ],
                       'globaltoc_depth': 2,
-                      'bootstrap_version': '3',}
+                      'bootstrap_version': '3',
+                      'source_link_position': "footer",}
                       
 html_sidebars = {'**': ['softtoc.html', 'searchbox.html']}
 

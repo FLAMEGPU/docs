@@ -212,14 +212,22 @@ Console Mode
 ------------
 
 
-Simulation executables built for console execution require two arguments (usage shown below).
-The first of which is a file location for an initial agent XML file containing the initial agent data.
-The second argument is the number of simulation iterations which should be processed.
-A number of optional CUDA arguments may also be passed (i.e. ``device=1`` to specify the second CUDA enabled GPU device within the host machine should be used for simulation) if required.
+Simulation executables built for console execution require two arguments, with several optional arguments.
 
 .. code-block:: bash
 
-    FLAMEGPU_simulation.exe [XML model data] [Iterations] [Optional CUDA arguments]
+    usage: EmptyExample [-h] [--help] input_path num_iterations [cuda_device_id] [XML_output_override]
+
+    required arguments:
+      input_path           Path to initial states XML file OR path to output XML directory
+      num_iterations       Number of simulation iterations
+
+    options arguments:
+      -h, --help           Output this help message.
+      cuda_device_id       CUDA device ID to be used. Default is 0.
+      XML_output_override  Flag indicating if iteration data should be output as XML
+                           0 = false, 1 = true. Default 1
+
 
 
 The result of running the simulation will be a number of output XML files which will be numbered from ``1`` to ``n``, where ``n`` is the number of simulations specified by the ``Iterations`` argument.
@@ -230,16 +238,23 @@ Visualisation Mode
 
 Simulation executables built for visualisation require only a single argument (usage shown below) which is the same as the first argument for with console execution (an initial agent XML file).
 The number of simulations iterations is not required as the simulation will run indefinitely until the visualisation is closed.
-As with console execution it is possible to specify optional CUDA arguments.
+As with console execution there are additional optional arguments available.
 
 .. code-block:: bash
 
-    Usage: main [XML model data] [Optional CUDA arguments]
+    usage: EmptyExample [-h] [--help] input_path [cuda_device_id]
+
+    required arguments:
+      input_path           Path to initial states XML file OR path to output XML directory
+
+    options arguments:
+      -h, --help           Output this help message.
+      cuda_device_id       CUDA device ID to be used. Default is 0.
 
 
 Many of the options for the default visualisation are contained within the ``visualisation.h`` header file and include the following;
 
-- ``SIMULATION_DELAY`` Many simulations are executed extremely quickly making visualisation a blur. This definition allows an artificial delay by executing this number of visualisation draw loops before each simulation iteration is processed.
+- ``SIMULATION_DELAY`` Many simulations are executed extremely quickly making visualisation a blur. This definition allows an artificial delay by executing this number of visualisation render loops before each simulation iteration is processed.
 - ``WINDOW_WIDTH`` and ``WINDOW_HEIGHT`` Specifies the size of the visualisation window 
 - ``NEAR_CLIP`` and ``FAR_CLIP`` Specifies the near an far clipping plane used for OpenGL rendering.
 - ``SPHERE_SLICES`` The number of slices used to create the sphere geometry representing a single agent in the visualisation.
@@ -247,6 +262,8 @@ Many of the options for the default visualisation are contained within the ``vis
 - ``SPHERE_RADIUS`` The physical size of the sphere geometry representing a single agent in the visualisation. This will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
 - ``VIEW_DISTANCE`` The camera viewing distance. Again this will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
 - ``LIGHT_POSITION`` The visualisation will contain a single light source which will be located at this position.
+- ``PAUSE_ON_START`` If defined the simulation is paused on launch, allowing the simulation to be visualised one iteration at a time. 
+
 
 The colour of spheres in the default visualisation is determined using an agent variable ``colour`` (or alternatively ``type`` or ``state``, however ``colour`` is the preferred option.) This can be an ``int`` or a ``float``, with a set of distinct colours available, using the following defined values:
 
@@ -260,6 +277,8 @@ The colour of spheres in the default visualisation is determined using an agent 
 - ``FLAME_GPU_VISUALISATION_COLOUR_WHITE``
 - ``FLAME_GPU_VISUALISATION_COLOUR_BROWN``
 
+
+.. @todo - Document the controls for the default visualisation.
 
 Creating a Custom Visualisation
 ===============================

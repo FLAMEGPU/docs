@@ -160,6 +160,10 @@ Linux compilation is controlled using ``make``, with makefiles provided for each
 
    Replace ``{example name}`` with the name of the specific example you wish to build.
 
+.. @todo - This is not the case? It is 1 by default, but can be overridden either by changing to 0 or using the new runtime argument.
+
+*Note*: XML output is disabled but can be re-enabled by setting the``XML_OUTPUT`` definition in the automatically generated ``src/dynamic/main.cu`` file to ``1``. After rebuilding and running the simulation again this will create an XML file (saved in the location of the initial input file) for each iteration which will contain the state of the agents after applying a single simulation iteration to the agents (in the same formal as ``0.xml``. You can view this file (``cat`` command) to see how the agent properties have changed.
+
 #. After building the executables, run the examples by executing the relevant bash script inside the ``bin/linux-x64`` folder:
 
    * Visualisation mode: ``./*_vis.sh}``

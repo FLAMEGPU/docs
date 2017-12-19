@@ -318,7 +318,66 @@ These macros can then be used to write a single ``functions.c`` file which can b
 Use of the Agent Output Simulation API
 ======================================
 
-Within an agent function script agent output is possible by using a message output API function.
+Within an agent function script, agent output is possible on the host from Init and Step functions, and on the device by using a agent output API function.
+
+Agent Creation from the Host
+----------------------------
+
+Within ``__FLAME_GPU_INIT_FUNC`` and ``__FLAME_GPU_STEP_FUNC`` (or within custom visualistion code) it is possible to generate one or more agents of a specific type and state, and transfer them to the device for the next simulation iteration.
+
+Several steps must be followed to make use of this feature.
+
+1. Allocate enough host (CPU) memory for all as many agents as you would like to create within the host function.
+2. Populate the agent data on the host.
+3. Copy agent data from the host to the device.
+4. Deallocate host memory when it is no longer required.
+
+If agents are only create in an ``INIT`` function, then the above procedure can be local to that ``INIT`` function.
+
+If agents are going to be created in ``STEP`` functions, it is more efficicent to split this procedure over an ``INIT`` function, a ``STEP`` function and an ``EXIT`` function.
+In this case, in ``functions.c`` you should declare a host memory in teh global scope. An ``INIT`` function is then used to allocate suffcient memory, agents are created in the ``STEP`` function and lastly the ``EXIT`` function is used to deallocate and free resources.
+
+If you are only creating a single agent of type ``Agent`` using the ``default`` state, the relavant data types and functions are:
+
+.. code-block:: c
+   :linenos:
+
+    // Declare a pointer to a single agent structure, and allocate the memory.
+    xmachine_memory_Agent * h_agent = h_allocate_agent_Agent();
+    // Populate the agent values as desired.
+    // Copy the single agent to the default in a synchronous operation.
+    h_add_agent_Agent_default(h_agent);
+    // Free the host memory when no longer required.
+    h_free_agent_Agent(&h_agent);
+
+
+If you would like to create multiple (``N``) agents of type ``Agent`` to the ``default`` state in a single init/step function, the relevant data types and functions are:
+
+.. code-block:: c
+   :linenos:
+
+    // Declare a pointer to an array of agent structures.
+    xmachine_memory_Agent ** h_agent_AoS;
+    // Allocate enough memory on the host for N agents
+    h_agent_AoS = h_allocate_agent_Agent_array(N);
+    // Populate the agents as required.
+    // Copy the agents to the device. Here count is an integer less than or equal to N.
+    h_add_agents_Agent_default(h_agent_AoS, count);
+    // Deallocate memory. 
+    // The total number of agents is required to avoid memory leaks.
+    h_free_agent_Agent_array(&h_agent_AoS, N);
+
+For an example of this being used please see the ``HostAgentCreation`` example.
+
+**Note**: Creating agents from the host is a relatively expensive process, as host to device memory copies are required.
+Higher performance is achieved when the number of copies as minimised, by batching creating multiple agents at once rather than many copies of individual agents.
+
+
+Agent Creation from the Device
+------------------------------
+
+Agent functions can be defined with the ``xagentOutputs`` tag containing one or more ``gpu:xagentOutput`` tags, allowing the agent function to create new agents of the specified ``<xagentName>`` and ``<state>``. 
+
 For each agent type defined within the XMML model definition the dynamically generated simulation code will create an agent output function of the following form; 
 
 .. code-block:: c
@@ -355,7 +414,6 @@ For clarity the agent output API function prototype (normally found in ``header.
         return 0;
     }
 
-.. TODO: Creating agents on the host
 
 Using Random Number Generation
 ==============================

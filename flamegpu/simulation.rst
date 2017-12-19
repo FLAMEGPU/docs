@@ -248,6 +248,18 @@ Many of the options for the default visualisation are contained within the ``vis
 - ``VIEW_DISTANCE`` The camera viewing distance. Again this will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
 - ``LIGHT_POSITION`` The visualisation will contain a single light source which will be located at this position.
 
+The colour of spheres in the default visualisation is determined using an agent variable ``colour`` (or alternatively ``type`` or ``state``, however ``colour`` is the preferred option.) This can be an ``int`` or a ``float``, with a set of distinct colours available, using the following defined values:
+
+- ``FLAME_GPU_VISUALISATION_COLOUR_BLACK``
+- ``FLAME_GPU_VISUALISATION_COLOUR_RED``
+- ``FLAME_GPU_VISUALISATION_COLOUR_GREEN``
+- ``FLAME_GPU_VISUALISATION_COLOUR_BLUE``
+- ``FLAME_GPU_VISUALISATION_COLOUR_YELLOW``
+- ``FLAME_GPU_VISUALISATION_COLOUR_CYAN``
+- ``FLAME_GPU_VISUALISATION_COLOUR_MAGENTA``
+- ``FLAME_GPU_VISUALISATION_COLOUR_WHITE``
+- ``FLAME_GPU_VISUALISATION_COLOUR_BROWN``
+
 
 Creating a Custom Visualisation
 ===============================

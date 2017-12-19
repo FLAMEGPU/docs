@@ -274,6 +274,46 @@ The example below shows an agent function (``input_messages``) of a discrete age
 .. \label{sec:graph-comm-message-iteration}
 .. \textbf{@todo}
 
+Message Type Macro Definition
+-----------------------------
+
+To increase the portability of agent function scripts, a preprocessor macro is defined in ``src/dynamic/header.h`` detailing which message partitioning scheme is used for each message type. 
+
+I.e. 
+
+.. code-block:: c
+   :linenos:
+  
+    #define xmachine_message_message0_partitioningNone
+    #define xmachine_message_message1_partitioningDiscrete
+    #define xmachine_message_message2_partitioningSpatial
+
+These macros can then be used to write a single ``functions.c`` file which can be used with different partitioning shchemes in the ``XMLModelFile.XML``.
+
+.. code-block:: c
+   :linenos:
+
+    #if defined(xmachine_message_message0_partitioningNone)
+        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_message0_list* message0_messages){
+    #elif defined(xmachine_message_message0_partitioningSpatial)
+        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_message0_list* message0_messages, xmachine_message_message0_PBM* partition_matrix){
+    #endif
+        // ...
+        #if defined(xmachine_message_message0_partitioningNone)
+            xmachine_message_message0* current_message = get_first_message0_message(message0_messages);
+        #elif defined(xmachine_message_message0_partitioningSpatial)
+            xmachine_message_message0* current_message = get_first_message0_message(message0_messages, partition_matrix, agent->x, agent->y, agent->z);
+        #endif
+        while (current_message) {
+            // ...
+            #if defined(xmachine_message_message0_partitioningNone)
+                current_message = get_next_message0_message(current_message, message0_messages);
+            #elif defined(xmachine_message_message0_partitioningSpatial)
+                current_message = get_next_message0_message(current_message, message0_messages, partition_matrix);
+            #endif
+        }
+        // ...
+    }
 
 Use of the Agent Output Simulation API
 ======================================

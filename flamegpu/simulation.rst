@@ -136,6 +136,18 @@ Or for a visualisation example in release mode:
 
 For more information on building FLAME GPU via make, run ``make help`` in an example directory.
 
+Creating a New FLAME GPU Example Project
+========================================
+
+The simplest way to create a new FLAME GPU example project is to copy and modify an existing project, renaming visual studio solution / project files, and modifying the Makefile.
+
+A python script is provided to simplify this process for you, makeing the required changes. I.e. to create a new example projected called ``NewExample``, based on the ``EmptyExample`` run the following command.
+
+.. code-block:: bash
+
+    python tools/new_example.py --base EmptyExample NewExample
+
+
 Simulation Execution Modes and Options
 ======================================
 

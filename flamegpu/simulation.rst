@@ -134,6 +134,24 @@ Or for a visualisation example in release mode:
 
 *Debug* mode executables can be built by specifying ``debug=1`` to make, ``make all debug=1``. The generated executable can then be debugged using ``cuda-gdb``.
 
+In the project specific portion of the Makefile (i.e ``examples/EmptyExample/Makefile``) several variables exist which allow the project to be customised.
+
+- ``EXAMPLE``: Controls the name of the project / executables generated.
+- ``HAS_VISUALISATION``: Determins if a visualisation mode should be supported or not.
+- ``CUSTOM_VISUALISATION``: Determins if a custom or the default visualisation should be used.
+- ``FLAMEGPU_ROOT``: The relative path from the Makefile to the main ``FLAMEGPU`` directory. I.e. ``../../``
+- ``EXAMPLE_BIN_DIR``: Path to the location to place executables.
+- ``EXAMPLE_BUILD_DIR``: Path to the build directory for this project.
+- ``SMS``: Set the CUDA Compute Capabilities to build executables for
+- ``TRANSFORM_*_XLS``: Prevent the relevant ``XSLT`` file from being transformed
+
+  - ``TRANSFORM_HEADER_XSLT_DISABLED``: ``header.xslt``
+  - ``TRANSFORM_FLAMEGPU_KERNALS_XSLT_DISABLED``: ``flamegpu_kernals.xslt``
+  - ``TRANSFORM_IO_XSLT_DISABLED``: ``io.xslt``
+  - ``TRANSFORM_SIMULATION_XSLT_DISABLED``: ``simulation.xslt``
+  - ``TRANSFORM_MAIN_XSLT_DISABLED``: ``main.xslt``
+  - ``TRANSFORM_VISUALISTION_XSLT_DISABLED``: ``visualistion.xslt``
+
 For more information on building FLAME GPU via make, run ``make help`` in an example directory.
 
 Creating a New FLAME GPU Example Project

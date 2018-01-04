@@ -270,10 +270,6 @@ The example below shows an agent function (``input_messages``) of a discrete age
     }
 
 
-.. \subsection{Graph-Based Communication Message Iteration}
-.. \label{sec:graph-comm-message-iteration}
-.. \textbf{@todo}
-
 Message Type Macro Definition
 -----------------------------
 

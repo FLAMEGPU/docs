@@ -18,8 +18,8 @@ A high level overview of a an XMML model file is described below with various se
    :linenos:
 
     <gpu:xmodel
-        xmlns:gpu="http://www.dcs.shef.ac.uk/\textasciitilde{}paul/XMMLGPU"
-        xmlns="http://www.dcs.shef.ac.uk/\textasciitilde{}paul/XMML">
+        xmlns:gpu="http://www.dcs.shef.ac.uk/~paul/XMMLGPU"
+        xmlns="http://www.dcs.shef.ac.uk/~paul/XMML">
         <name>Model Name</name>    <!-- optional -->
         <gpu:environment>...</gpu:environment>
         <xagents>...</xagents>
@@ -353,10 +353,6 @@ For continuously spaced agents in 2D space ``P`` in the x z dimension should be 
         <gpu:zmax>10</gpu:zmax>
     </gpu:partitioningSpatial>  
 
-.. \subsection{Graph-Based Communication Messages}
-.. \label{ssec:graph-comm-xml}
-.. \textbf{@todo}
-
 
 Defining an Agent function
 ==========================
@@ -465,7 +461,7 @@ Function Conditions
 
 An agent function ``condition`` indicates that the agent function should only be applied to agents which meet the defined condition (and in the correct state specified by ``currentState``).
 Each function condition consists of three parts a left hand side statement (``lhs``), an ``operator`` and a right hand side statement (``rhs``).
-Both the \mintinline[fontsize=\small]{text}{lhs} and \mintinline[fontsize=\small]{text}{rhs} elements may contain either a agentVariable a value or a recursive condition element.
+Both the ``lhs`` and ``rhs`` elements may contain either a ``agentVariable`` a value or a recursive condition element.
 An ``agentVariable`` element must refer to a agent variable defined within the agents list of variable names (i.e. the XPath equivalent of 
 ``xagent/memory/variable/name``).
 A ``value`` element may refer to any numeric value or constant definition (defined within the agent function scripts).

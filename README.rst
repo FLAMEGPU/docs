@@ -9,13 +9,9 @@ This is the RST version of the FLAME GPU Technical report and user guide. The do
 
 How to Contribute
 -----------------
-To contribute to this documentation, first you have to fork it on GitHub and clone it to your machine, see `Fork a Repo <https://help.github.com/articles/fork-a-repo/>`_ for the GitHub documentation on this process.
+To contribute to this documentation, fork this repository on GitHub and create a local clone of your fork on your local machine, see `Fork a Repo <https://help.github.com/articles/fork-a-repo/>`_ for the GitHub documentation on this process.
 
-Once you have the git repository locally on your computer, you will need to install ``sphinx`` and ``sphinx_bootstrap_theme`` to be able to build the documentation. See the instructions below for how to achieve this.
-
-::
-
-	pip install sphinx_rtd_theme
+Create changes in a feature-branch and push to your fork. Please ensure that the documentation can still be built after your changes have been made (see `Building the documentation`).
 
 Once you have made your changes and updated your Fork on GitHub you will need to `Open a Pull Request <https://help.github.com/articles/using-pull-requests/>`_. All changes to the repository should be made through Pull Requests, including those made by the people with direct push access.
 
@@ -25,28 +21,30 @@ Building the documentation
 
 #. Install Python on your machine 
 
-#. Install sphinx: ::
+#. Navigate to the root directory of this repository
 
-	pip install sphinx
+#. Install the Python packages needed to build the HTML documentation: ::
+
+    pip3 install -r requirements.txt
 
 #. To build the HTML documentation run: ::
 
     make html
-	
+  
    Or if you don't have the ``make`` utility installed on your machine then build with *sphinx* directly: ::
 
     sphinx-build . ./html
 
+#. To build the PDF documentation you will need : 
 
+    * GNU Make
+    * A LaTeX distribution, such as MikTeX or TeXLive
 
-#. Build the documentation: ::
+   Then from the command line, build the pdf using: :: 
 
-     make html
+     make latexpdf
      
-   Or if you don't have the ``make`` utility installed on your machine then serve with *sphinx* directly: ::
-
-    sphinx-build . ./html
-
+   Depending on your latex distribution you may need to install missing latex packages using the distribution-specific method.
 
 Continuous build and serve
 --------------------------

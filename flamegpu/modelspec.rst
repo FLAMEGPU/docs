@@ -504,6 +504,9 @@ Rather than the left hand bracket (less than) the correct xml syntax of
 ``&lt;`` should be used. Likewise the right hand bracket (greater than) should be replaced with 
 ``&gt;``.
 
+.. note ::
+    *Discrete* agents **cannot** have agent functions with conditions.
+
 
 Global Function Conditions
 --------------------------

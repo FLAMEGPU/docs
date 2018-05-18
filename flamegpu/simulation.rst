@@ -294,3 +294,33 @@ Message Iteration
 - For small populations of agents (generally less than 2000 but dependant on hardware and the model) non partitioned messaging has less overhead and is similarly comparable to spatial partitioning.
 - For large populations of distributed agents with limited communication spatially partitioned message communication will be much faster.
 
+
+Detailed profiling using NVTX
+=============================
+
+Additional profiling information can be exported for the visual profiler using the Nvidia Tools Extension Library (NVTX). 
+NVTX markers and ranges can be optionally enabled to provide enhanced profiling. 
+
+Enabling NVTX Markers via makefile
+----------------------------------
+
+To achieve this using the ``Makefile``, simply add ``profile=1`` as an argument to make, on any platform:
+
+.. code-block:: bash
+    make console profile=1
+
+Enabling NVTX Markers in Visual Studio
+--------------------------------------
+
+To enable NVTX markers in visual studio the solution must be modified to add the relevant definition, include path and linker flags as follows:
+
+
+- ``C/C++ > Preprocessor > Preprocessor Definitions``
+    - Add ``PROFILE``
+- ``CUDA C/C++ > Common > Additional Include Directories``
+    - Add ``$(NVTOOLSEXT_PATH)include``
+- ``Linker > General > Additional Library Directories``
+    - Add ``$(NVTOOLSEXT_PATH)lib/x64``
+- ``Linker > Input > Additional Dependencies``
+    - Add ``nvToolsExt64_1.lib``
+

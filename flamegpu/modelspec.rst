@@ -51,7 +51,7 @@ Simulation Constants (Global Variables)
 ---------------------------------------
 
 Simulation constants are defined as (global) variables and may be of type int, float or double (on GPU hardware with double support i.e. CUDA Compute capability 2.0 or beyond).
-Constant variables must each have a unique name which is used to reference them within simulation code and can have an optional static array length (of size greater than 0).
+Constant variables must each have a unique name which is used to reference them within simulation code and can have an optional static array length (of size greater than 0). Table [var_types]  summarizes the supported data types for the environment variables.
 The description element arrayLength element and defaultValue element are all optional.
 The below code shows the specification of two constant variables: the first represents a single ``int`` constant (with a default value of ``1``), the second indicates an ``int`` array of length ``5``.
 Simulation constants can be set either as default values as show below, within the initial agent XML file (see :ref:`Initial Simulation Constants`) or at run-time are described in :ref:`Host Simulation Hooks`. Values set in initial XML values will overwrite a default value and values which are set at runtime will overwrite values set in initial agent XML files.
@@ -182,7 +182,7 @@ Agent Memory
 
 
 Agent memory consists of a number of variables (at least one) which are use to hold information.
-An agent ``variable`` must have a unique ``name`` and may be of ``type`` ``int``, ``float`` or ``double`` (CUDA compute capability 1.3 or beyond).
+An agent ``variable`` must have a unique ``name`` and may be of ``type`` ``int``, ``float`` or ``double`` (CUDA compute capability 1.3 or beyond). Table [var_types]  summarizes the supported data types for the agent variables.
 Default values are always ``0`` unless a ``defaultValue`` element is specified or if a value is specified within the XML input states file (which supersedes the default value).
 There are no specified limits on the maximum number of agent variables however the performance tips noted in :ref:`Performance Tips` should be taken into account.
 Agent memory can also be defined as static sized array. Below shows an example of agent memory containing four agent variables representing an agent identifier, two positional values (one with a default value) and a list of numbers.
@@ -263,8 +263,8 @@ Message Variables
 -----------------
 
 The message ``variables`` element consists of a number of ``variable`` elements (at least one) which are use to hold communication information.
-A ``variable`` must have a unique ``name`` and may be of ``type`` ``{int``, ``float`` or ``double`` (CUDA Compute capability 2.0 or beyond).
-Unlike with agent variables, message variables support only scalar single memory values (i.e. no static or dynamic arrays).
+A ``variable`` must have a unique ``name`` and may be of ``type`` ``{int``, ``float`` or ``double`` (CUDA Compute capability 2.0 or beyond). 
+Unlike with agent variables, message variables support only scalar single memory values (i.e. no static or dynamic arrays). Table [var_types]  summarizes the supported data types for the message variables.
 There are no specified limits on the maximum number of message variables however increased message size will have a negative effect on performance in all partitioning cases (and in particular when non partitioned messages are used).
 The format of message variable specification shown below is identical to that of agent memory.
 The only exception is the requirement of certain variable names which are required by certain partitioning types.
@@ -646,3 +646,55 @@ Could have a value specified within an initial XML agents file as follows;
     ...
 
 *Note: that the value obtained from the initial XML agents file will supersede any default value.*
+
+FLAME GPU variable types
+========================
+
+FLAME GPU framework support the following scalar and vector data types, grouped as follows:
+
+
+=====      ========================================================
+Type       Meaning 
+=====      ========================================================
+bool        A conditional type, can have one of the two values of true or false
+short       Short int is larger or equal to the size of type char, and shorter or equal
+int         It is larger than or equal to the size of type short int, and shorter than or equal to the size of type long. It can be declared as signed int or unsigned int.
+long        Larger than or equal to the size of type int. It can be declared as unsigned and signed. 
+long long   Larger than an unsigned long. Can be declared as signed long or unsigned long.
+float       A single floating-point scalar
+double      A single double-precision floating point scalar. It is larger than or equal to type float, but shorter than or equal to the size of type long double.
+long double  It is larger than or equal to type double
+=====   ======================================================== 
+fvec2   a two-component floating-point vector
+fvec3   a three-component floating-point vector
+fvec4   a four-component floating-point vector
+dvec2   a two-component double-precision floating-point vector
+dvec3   a three-component double-precision floating-point vector
+dvec4   a four-component double-precision floating-point vector
+ivec2   a two-component signed integer vector
+ivec3   a three-component signed integer vector
+ivec4   a four-component signed integer vector
+uvec2   a two-component unsigned integer vector
+uvec3   a three-component unsigned integer vector
+uvec4   a four-component unsigned integer vector
+=====  ==========================================================
+
+
+Within FLAME GPU, agent and environment variables can be of any above data type (vectors [2]_ or scalars [1]_). However, vector types are not supported in message variables.
+
+Here you have a quick reference to the complete set of supported data types:
+.. [var_types]
+==============  ================  ====================
+Agent Variable  Message Variable  Environment Variable 
+--------------  ----------------  --------------------
+Scalar,Vector       Scalar           Scalar,Vector 
+==============  ================  ==================== 
+
+
+.. [1] Scalars: bool, short, int, float, double, long, long long
+.. [2] Vectors: fvec2, fvec3, fvec4, dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4
+
+
+
+
+

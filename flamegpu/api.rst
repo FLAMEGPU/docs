@@ -459,7 +459,7 @@ When specifying an agent function declaration this order must be observed.
 Host Simulation Hooks
 =====================
 
-Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code, but are able to execute GPU Runtime Host Functions \cef{????}. Host simulation Hooks are defined in the dynamically created file `simulation.cu`. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
+Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code during certain stages of the simulation execution. Host simulation Hooks should be defined in your `functions.c` file and should also be registered in the model description. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
 
 Initialisation Functions (API)
 ------------------------
@@ -514,7 +514,7 @@ If an exit function was defined in the XMMl model file (section :ref:`Exit Funct
 Runtime Host Functions
 ======================
              
-Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations.
+Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations. In addition to the functionality in this section it is also possible to create agents on the host which are injected into the simulation (see :ref:`Agent Creation from the Host`).
              
 Setting Simulation Constants (Global Variables)
 -----------------------------------------------
@@ -531,7 +531,7 @@ The code below demonstrates the function prototype for setting a simulation cons
 The function is declared using the `extern` keyword which allows it to be linked to by externally compiled code such as a visualisation or custom simulation loop.
 
 .. TODO get for env constants
-.. TOD get and set for array constants
+.. TODO get and set for array constants
 
 
 
@@ -591,13 +591,15 @@ The value `xmachine_memory_agent_MAX` is the buffer size of number of agents (se
 Analytics functions
 -------------------
 
-A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count* function will only be created for single-value (not array) `int` variables. Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
+A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count*, *min* and *max* functions will only be created for single-value (not array) variables. Count functions are limited to `int` type variables (including short, long and vector type variants), min and max functions are limited to non vector type variables (e.g. no dvec2 type of variables). Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
 
 .. code-block:: c
    :linenos:
    
     reduce_agentName_default_varName_variable();
     count_agentName_default_varName_variable(int count_value);
+    min_agentName_default_varName_variable();
+    max_agentName_default_varName_variable();
 
 
 Instrumentation for timing and population sizes

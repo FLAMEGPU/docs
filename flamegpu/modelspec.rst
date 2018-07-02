@@ -153,7 +153,8 @@ That is the maximum number of x-machine agent instances of the format described 
 There is no performance disadvantage to using a large ``bufferSize`` however it is the user's responsibility to ensure that the GPU contains enough memory to support large populations of agents.
 It is recommended that the bufferSize always be a power of two number (i.e. ``1024``, ``2048``, ``4096``, ``16384``, etc) as it will most likely be rounded to one during simulation.
 For discrete agents the bufferSize is strictly limited to only power of 2 numbers which have squarely divisible dimensions (i.e. the square of the bufferSize must be a whole number).
-If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit.
+If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit. Care must be taken when defining the value of bufferSize. Any datatype which would exceed the stack limit of 2GB (calculated as bufferSize*sizeof(agent variable data type) will fail to build under windows. E.g. This limits the bufferSize for 4byte variables (int, float, etc) to 62.5 million.
+
 Each expandable aspect of an XMML agent representation in the below example is discussed within this section with the exception of agent functions, which due to their dependence of the definition of messages, are discussed later in :ref:`Defining an Agent function`.
 
 .. code-block:: xml
@@ -336,7 +337,7 @@ The space within the defined bounds is partitioned according to the radius with 
 .. math::
     P = ceiling((max\_bound - min\_bound) / radius)
 
-The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space.
+The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space. The value of ``P`` must not exceed 62.5 million due to limitations on the size of stack memory.
 Spatially partitioned message iteration can then iterate a varying number of messages from a fixed number of adjacent partitions in partition space to ensure each message within the specified radius has been considered.
 The following example defines a spatial partition in three dimensions.
 For continuously spaced agents in 2D space ``P`` in the x z dimension should be equal to ``1`` and therefore a ``zmin`` of ``0`` would require a ``zmax`` value equal to ``radius`` (even in this case a message variable with name ``z`` is still required).

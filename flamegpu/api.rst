@@ -516,23 +516,26 @@ Runtime Host Functions
              
 Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations. In addition to the functionality in this section it is also possible to create agents on the host which are injected into the simulation (see :ref:`Agent Creation from the Host`).
              
-Setting Simulation Constants (Global Variables)
+Getting and Setting Simulation Constants (Global Variables)
 -----------------------------------------------
 
-Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variable definition (see :ref:`Simulation Constants (Global Variables)`).
-It is not possible to set constant variables within an agent function however, the simulation API creates methods for setting simulation constants which may be called either at the start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).
+Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variables definition (see :ref:`Simulation Constants (Global Variables)`).
+It is not possible to set constant variables within an agent function, however, the simulation API creates methods for setting simulation constants which may be called from :ref:`Host Simulation Hooks`. E.g. At start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).
 The code below demonstrates the function prototype for setting a simulation constant with the name `A_CONSTANT`.
 
 .. code-block:: c
 
     extern "C" void set_A_CONSTANT (float* h_A_CONSTANT);
 
+The function requires a pointer to a host variable (or array in the case of an environment variable array). An equivalent function is created for the getting of simulation constants on the host. E.g.
 
-The function is declared using the `extern` keyword which allows it to be linked to by externally compiled code such as a visualisation or custom simulation loop.
+.. code-block:: c
 
-.. TODO get for env constants
-.. TODO get and set for array constants
+    extern "C" float* get_A_CONSTANT();
 
+This function returns a host pointer to the variable (or array in the case of an environment variable array).
+
+The functions for getting and setting constants are all declared using the `extern` keyword which allows them to be linked by externally compiled code such as a custom visualisation or custom simulation loop.
 
 
 Sorting agents

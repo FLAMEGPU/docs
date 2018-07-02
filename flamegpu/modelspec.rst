@@ -96,7 +96,7 @@ Initialisation Functions
 Initialisation functions are user defined functions which can be used to set constant global variables. 
 Any initialisation functions defined within the ``initFunctions`` element are called a single time by the automatically generated simulation code in the order that they appear during the initialisation of the simulation. 
 If an ``initFunctions`` element is specified there must be at least a single ``initFunction`` child element with a unique name. 
-:ref:`Initialisation Functions` demonstrates how to specify initialisation functions within a function file.
+:ref:`Initialisation Functions (API)` demonstrates how to specify initialisation functions within a function file.
 
 .. code-block:: xml
    :linenos:
@@ -112,7 +112,7 @@ If an ``initFunctions`` element is specified there must be at least a single ``i
 Step Functions
 --------------
 
-Step functions are similarly defined to initialisation functions, requiring at least a single ``stepFunction`` child element if the ``stepFunctions`` element is defined. These functions are called at the end of each iteration step, i.e. after all the layers, as defined in section \ref{sec:26}, are executed each step. Example uses of this function are to calculate agent averages during the iteration step or sort functions.
+Step functions are similarly defined to initialisation functions, requiring at least a single ``stepFunction`` child element if the ``stepFunctions`` element is defined. These functions are called at the end of each iteration step, i.e. after all the layers, as defined in section :ref:`Step Functions (API)`, are executed each step. Example uses of this function are to calculate agent averages during the iteration step or sort functions.
 
 .. code-block:: xml
    :linenos:
@@ -128,6 +128,7 @@ Exit Functions
 --------------
 
 Exit functions are again like the other function types defined above, requiring at least a single ``exitFunction`` child element if the ``exitFunctions`` element is defined. These functions are called at the end of the whole simulation. An example use of this function would be to calculate final averages of agent variables or print out final values.
+:ref:`Exit Functions (API)` demonstrates how to specify initialisation functions within a function file.
 
 .. code-block:: xml
    :linenos:

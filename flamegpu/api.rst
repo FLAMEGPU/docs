@@ -319,7 +319,7 @@ Within an agent function script, agent output is possible on the host from Init 
 Agent Creation from the Host
 ----------------------------
 
-Within ``__FLAME_GPU_INIT_FUNC`` and ``__FLAME_GPU_STEP_FUNC`` (or within custom visualistion code) it is possible to generate one or more agents of a specific type and state, and transfer them to the device for the next simulation iteration.
+Within ``__FLAME_GPU_INIT_FUNC`` and ``__FLAME_GPU_STEP_FUNC`` (or within custom visualisation code) it is possible to generate one or more agents of a specific type and state, and transfer them to the device for the next simulation iteration.
 
 Several steps must be followed to make use of this feature.
 
@@ -330,10 +330,10 @@ Several steps must be followed to make use of this feature.
 
 If agents are only create in an ``INIT`` function, then the above procedure can be local to that ``INIT`` function.
 
-If agents are going to be created in ``STEP`` functions, it is more efficicent to split this procedure over an ``INIT`` function, a ``STEP`` function and an ``EXIT`` function.
-In this case, in ``functions.c`` you should declare a host memory in teh global scope. An ``INIT`` function is then used to allocate suffcient memory, agents are created in the ``STEP`` function and lastly the ``EXIT`` function is used to deallocate and free resources.
+If agents are going to be created in ``STEP`` functions, it is more efficient to split this procedure over an ``INIT`` function, a ``STEP`` function and an ``EXIT`` function.
+In this case, in ``functions.c`` you should declare a host memory in the global scope. An ``INIT`` function is then used to allocate sufficient memory, agents are created in the ``STEP`` function and lastly the ``EXIT`` function is used to deallocate and free resources.
 
-If you are only creating a single agent of type ``Agent`` using the ``default`` state, the relavant data types and functions are:
+If you are only creating a single agent of type ``Agent`` using the ``default`` state, the relevant data types and functions are:
 
 .. code-block:: c
    :linenos:
@@ -461,7 +461,7 @@ Host Simulation Hooks
 
 Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code, but are able to execute GPU Runtime Host Functions \cef{????}. Host simulation Hooks are defined in the dynamically created file `simulation.cu`. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
 
-Initialisation Functions
+Initialisation Functions (API)
 ------------------------
 
 Any initialisation functions defined within the XMML model file (see :ref:`Initialisation Functions`) is expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
@@ -479,10 +479,10 @@ The below example demonstrated an initialisation function named `initConstants` 
 
 
 
-Step Functions
+Step Functions (API)
 --------------
 
-If a step function was defined in the XMMl model file (section \ref{sec:stepFunc}) then it should be defined in a similar way to the initialisation functions as described above in section \ref{sec:391}. These functions will be called after each iteration step. An example is shown below. A common use of a step functions is to output logs from analytics functions when full agent XML output is not required. In this case an init or step function can be used for creating and closing a file handle respectively.
+If a step function was defined in the XMMl model file (section :ref:`Step Functions`}) then it should be defined in a similar way to the initialisation functions as described above in section :ref:`Initialisation Functions (API)`. These functions will be called after each iteration step. An example is shown below. A common use of a step functions is to output logs from analytics functions when full agent XML output is not required. In this case an init or step function can be used for creating and closing a file handle respectively.
 
 .. code-block:: c
    :linenos:
@@ -494,10 +494,10 @@ If a step function was defined in the XMMl model file (section \ref{sec:stepFunc
 
 
 
-Exit Functions
+Exit Functions (API)
 --------------
 
-If an exit function was defined in the XMMl model file (section \ref{sec:endFunc}) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below. 
+If an exit function was defined in the XMMl model file (section :ref:`Exit Functions`) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below. 
 
 .. code-block:: c
    :linenos:
@@ -545,7 +545,7 @@ Each `CONTINUOUS` type agent can be sorted based on key value pairs which come f
     void sort_*agent*_default(void (*generate_key_value_pairs)(unsigned int* keys, unsigned int* values, xmachine_memory_*agent*_list* agents))
 
 
-The function takes as an argument a function pointer to a GPU `__global__` function. This function it points to takes two unsigned int arrays in which it will store the resulting key and value data, and `xmachine_memory_*agent*_list` which contains a structure of arrays of the agent. This type is generated dynamically depending on the agent variables defined in the XML model file (section \ref{sec:231}). For an agent with two float variables `x` and `y`, it has the following structure:
+The function takes as an argument a function pointer to a GPU `__global__` function. This function it points to takes two unsigned int arrays in which it will store the resulting key and value data, and `xmachine_memory_*agent*_list` which contains a structure of arrays of the agent. This type is generated dynamically depending on the agent variables defined in the XML model file ( :ref:`Agent Memory` ). For an agent with two float variables `x` and `y`, it has the following structure:
 
 .. code-block:: c
    :linenos:
@@ -557,7 +557,7 @@ The function takes as an argument a function pointer to a GPU `__global__` funct
     }
 
 
-The value `xmachine_memory_agent_MAX` is the and buffer size of number of agents (section \ref{sec:23}). This struct can be accessed to assign agent data to the key and value arrays. The following example is given within a FLAME step function which sorts agents by 1D position
+The value `xmachine_memory_agent_MAX` is the buffer size of number of agents (section :ref:`Defining an X-Machine Agent`). This struct can be accessed to assign agent data to the key and value arrays. The following example is given within a FLAME step function which sorts agents by 1D position
 
 .. code-block:: c
    :linenos:

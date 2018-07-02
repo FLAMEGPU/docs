@@ -653,9 +653,9 @@ FLAME GPU variable types
 FLAME GPU framework support the following scalar and vector data types, grouped as follows:
 
 
-=====      ========================================================
-Type       Meaning 
-=====      ========================================================
+=========== ==========================================================
+Type        Meaning 
+=========== ==========================================================
 bool        A conditional type, can have one of the two values of true or false
 short       Short int is larger or equal to the size of type char, and shorter or equal
 int         It is larger than or equal to the size of type short int, and shorter than or equal to the size of type long. It can be declared as signed int or unsigned int.
@@ -663,21 +663,20 @@ long        Larger than or equal to the size of type int. It can be declared as 
 long long   Larger than an unsigned long. Can be declared as signed long or unsigned long.
 float       A single floating-point scalar
 double      A single double-precision floating point scalar. It is larger than or equal to type float, but shorter than or equal to the size of type long double.
-long double  It is larger than or equal to type double
-=====   ======================================================== 
-fvec2   a two-component floating-point vector
-fvec3   a three-component floating-point vector
-fvec4   a four-component floating-point vector
-dvec2   a two-component double-precision floating-point vector
-dvec3   a three-component double-precision floating-point vector
-dvec4   a four-component double-precision floating-point vector
-ivec2   a two-component signed integer vector
-ivec3   a three-component signed integer vector
-ivec4   a four-component signed integer vector
-uvec2   a two-component unsigned integer vector
-uvec3   a three-component unsigned integer vector
-uvec4   a four-component unsigned integer vector
-=====  ==========================================================
+long double It is larger than or equal to type double
+fvec2       a two-component floating-point vector
+fvec3       a three-component floating-point vector
+fvec4       a four-component floating-point vector
+dvec2       a two-component double-precision floating-point vector
+dvec3       a three-component double-precision floating-point vector
+dvec4       a four-component double-precision floating-point vector
+ivec2       a two-component signed integer vector
+ivec3       a three-component signed integer vector
+ivec4       a four-component signed integer vector
+uvec2       a two-component unsigned integer vector
+uvec3       a three-component unsigned integer vector
+uvec4       a four-component unsigned integer vector
+=========== ==========================================================
 
 
 Within FLAME GPU, agent and environment variables can be of any above data type (vectors [2]_ or scalars [1]_). However, vector types are not supported in message variables.

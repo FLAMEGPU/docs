@@ -690,6 +690,7 @@ Within FLAME GPU, agent and environment variables can be of any above data type 
 
 Here you have a quick reference to the complete set of supported data types:
 .. [var_types]
+
 ==============  ================  ====================
 Agent Variable  Message Variable  Environment Variable 
 --------------  ----------------  --------------------

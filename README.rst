@@ -1,6 +1,6 @@
 .. image:: https://readthedocs.org/projects/flamegpu/badge/?version=master
-:target: http://flamegpu.readthedocs.io/en/latest/?badge=master
-:alt: Documentation Status
+   :target: http://flamegpu.readthedocs.io/en/latest/?badge=master
+   :alt: Documentation Status
     
 FLAME GPU Technical Report and User Guide Documentation
 =======================================================

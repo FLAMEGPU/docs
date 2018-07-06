@@ -647,6 +647,13 @@ Could have a value specified within an initial XML agents file as follows;
 
 *Note: that the value obtained from the initial XML agents file will supersede any default value.*
 
+
+Host-based Agent Creation
+-------------------------
+
+As of FLAME GPU 1.5.0 it is possible to create agents on the host using Init or Step functions, rather than loading from XML. This is described by :ref:`Agent Creation from the Host`.
+
+
 FLAME GPU variable types
 ========================
 

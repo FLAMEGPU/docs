@@ -462,7 +462,7 @@ Host Simulation Hooks
 Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code during certain stages of the simulation execution. Host simulation Hooks should be defined in your `functions.c` file and should also be registered in the model description. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
 
 Initialisation Functions (API)
-------------------------
+------------------------------
 
 Any initialisation functions defined within the XMML model file (see :ref:`Initialisation Functions`) is expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
 The initialisation function declaration should be preceded with a `__FLAME_GPU_INIT_FUNC__` macro definition, should have no arguments and should return void.
@@ -480,7 +480,7 @@ The below example demonstrated an initialisation function named `initConstants` 
 
 
 Step Functions (API)
---------------
+--------------------
 
 If a step function was defined in the XMMl model file (section :ref:`Step Functions`}) then it should be defined in a similar way to the initialisation functions as described above in section :ref:`Initialisation Functions (API)`. These functions will be called after each iteration step. An example is shown below. A common use of a step functions is to output logs from analytics functions when full agent XML output is not required. In this case an init or step function can be used for creating and closing a file handle respectively.
 
@@ -495,7 +495,7 @@ If a step function was defined in the XMMl model file (section :ref:`Step Functi
 
 
 Exit Functions (API)
---------------
+--------------------
 
 If an exit function was defined in the XMMl model file (section :ref:`Exit Functions`) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below. 
 
@@ -517,7 +517,7 @@ Runtime Host Functions
 Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations. In addition to the functionality in this section it is also possible to create agents on the host which are injected into the simulation (see :ref:`Agent Creation from the Host`).
              
 Getting and Setting Simulation Constants (Global Variables)
------------------------------------------------
+-----------------------------------------------------------
 
 Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variables definition (see :ref:`Simulation Constants (Global Variables)`).
 It is not possible to set constant variables within an agent function, however, the simulation API creates methods for setting simulation constants which may be called from :ref:`Host Simulation Hooks`. E.g. At start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).

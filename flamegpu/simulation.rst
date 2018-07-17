@@ -307,6 +307,7 @@ Enabling NVTX Markers via makefile
 To achieve this using the ``Makefile``, simply add ``profile=1`` as an argument to make, on any platform:
 
 .. code-block:: bash
+
     make console profile=1
 
 Enabling NVTX Markers in Visual Studio
@@ -324,3 +325,98 @@ To enable NVTX markers in visual studio the solution must be modified to add the
 - ``Linker > Input > Additional Dependencies``
     - Add ``nvToolsExt64_1.lib``
 
+
+
+Parameter Exploration
+=====================
+
+Agent Based Simulations typically have many parameters which control certain aspects of the simulation, which can be used for calibration. As of FLAME GPU 1.5.0 the simplest method to achieve this is to use multiple initial states files for separate simulations which contain different values for environmental constants, and run the simulation on each of the files. 
+
+For instance, for a model with 2 environmental constants representing model parameters called ``SEED`` and ``INIT_POPULATION`` which are defined in ``XMLModelFile.XML`` within the ``<gpu:environment>`` tag as follows:
+
+.. code-block:: xml
+   :linenos:
+
+   <gpu:constants>
+     <gpu:variable>
+       <type>unsigned int</type>
+       <name>SEED</name>
+       <defaultValue>0</defaultValue>
+     </gpu:variable>
+     <gpu:variable>
+       <type>unsigned int</type>
+       <name>INIT_POPULATION</name>
+       <defaultValue>1</defaultValue>
+     </gpu:variable>
+   </gpu:constants>
+
+If we wish to run this with ``SEED`` values ``0``, ``1`` & ``2`` and ``INIT_POPULATION`` values ``10``, ``100`` and ``1000`` this could be achieved with 9 initial states files (stored in separate folders to avoid overwriting output). A script could be used to create these files for large parameter sweeps. 
+
+This could have the following structure:
+
+.. code-block:: none
+
+   iterations
+       ├── 0-10
+       │   └── 0.xml
+       ├── 0-100
+       │   └── 0.xml
+       ├── 0-1000
+       │   └── 0.xml
+       ├── 1-10
+       │   └── 0.xml
+       ├── 1-100
+       │   └── 0.xml
+       ├── 1-1000
+       │   └── 0.xml
+       ├── 2-10
+       │   └── 0.xml
+       ├── 2-100
+       │   └── 0.xml
+       └── 2-1000
+           └── 0.xml
+
+The contents of each file would then be different. Assuming agents are created via an ``INIT`` function, each ``0.xml`` file could look as follows. 
+
+
+``0-10/0.xml`` would contain:
+
+.. code-block:: xml
+   :linenos:
+
+   <states>
+       <itno>0</itno>
+       <environment>
+           <SEED>0</SEED>
+           <INIT_POPULATION>10</INIT_POPULATION>
+       </environment>
+   </states>
+
+``0-100/0.xml`` would contain:
+
+.. code-block:: xml
+   :linenos:
+
+   <states>
+       <itno>0</itno>
+       <environment>
+           <SEED>0</SEED>
+           <INIT_POPULATION>100</INIT_POPULATION>
+       </environment>
+   </states>
+
+
+``0-1000/0.xml`` would contain:
+
+.. code-block:: xml
+   :linenos:
+
+   <states>
+       <itno>0</itno>
+       <environment>
+           <SEED>0</SEED>
+           <INIT_POPULATION>1000</INIT_POPULATION>
+       </environment>
+   </states>
+
+And so on. Simulations could then be launched in batch via a script, either sequentially or concurrently depending upon the memory requirements of each model, and the availability of GPUs.

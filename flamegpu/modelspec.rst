@@ -312,8 +312,8 @@ Discrete Partitioned Messages
 Discrete partitioned messages are messages which may only originate from non mobile discrete agents (cellular automaton).
 A discrete partitioning message scheme requires the specification of a radius which indicates the range (in in 2D discrete space) which a message iteration will extend to.
 A radius value of ``0`` indicates that only a single message will be returned from message iteration.
-A value of greater than ``0`` indicates that message iteration will loop through radius directions in both the ``x`` and a ``y`` dimension (e.g.
-a range of ``1`` will iterate ``3x3=9`` messages, a range of ``2`` will iterate ``5x5=25``).
+A value of greater than ``0`` indicates that message iteration will loop through radius directions in both the ``x`` and a ``y`` dimension, but ignore the centre cell (e.g.
+a range of ``1`` will iterate ``(3x3)-1=8`` messages, a range of ``2`` will iterate ``(5x5)-1=24``).
 In addition to this the agent memory is expected to contain an ``x`` and ``y`` variable of ``type`` ``int``.
 As with discrete agents it is important to ensure that messages using discrete partitioning use only supported buffer sizes (power of 2 and squarely divisible). The width and height of the discrete message space is then defined as the square of the ``bufferSize`` value. 
 

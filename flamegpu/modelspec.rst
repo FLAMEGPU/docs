@@ -314,6 +314,8 @@ A discrete partitioning message scheme requires the specification of a radius wh
 A radius value of ``0`` indicates that only a single message will be returned from message iteration.
 A value of greater than ``0`` indicates that message iteration will loop through radius directions in both the ``x`` and a ``y`` dimension, but ignore the centre cell (e.g.
 a range of ``1`` will iterate ``(3x3)-1=8`` messages, a range of ``2`` will iterate ``(5x5)-1=24``).
+When iterating messages, the environment is wrapped in the ``x`` and ``y`` axis to form a torus.
+This means that the radius value used should be less than or equal to ``floor((sqrt(bufferSize) - 1) / 2)`` to avoid the same message being read multiple times.
 In addition to this the agent memory is expected to contain an ``x`` and ``y`` variable of ``type`` ``int``.
 As with discrete agents it is important to ensure that messages using discrete partitioning use only supported buffer sizes (power of 2 and squarely divisible). The width and height of the discrete message space is then defined as the square of the ``bufferSize`` value. 
 
@@ -323,6 +325,9 @@ As with discrete agents it is important to ensure that messages using discrete p
     <gpu:partitioningDiscrete>
         <gpu:radius>1</gpu:radius>
     </gpu:partitioningDiscrete>
+
+.. warning::
+   Outputting messages with ``x`` or ``y`` values outside of the environment bounds (greater than the square of the ``bufferSize``) is undefined and may result in unexpected behaviour. 
 
 Spatially Partitioned Messages
 ------------------------------
@@ -338,7 +343,10 @@ The space within the defined bounds is partitioned according to the radius with 
     P = ceiling((max\_bound - min\_bound) / radius)
 
 The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space. The value of ``P`` must not exceed 62.5 million due to limitations on the size of stack memory.
+The value of ``P`` must be at least 3 in both the ``x`` and ``y`` axis, and at least ``1`` in the ``z`` axis, else a compilation error will occur. If the desired configuration does not meet these critera consider using Non Partitioned Messages.
 Spatially partitioned message iteration can then iterate a varying number of messages from a fixed number of adjacent partitions in partition space to ensure each message within the specified radius has been considered.
+When iterating messages, the environment is wrapped in the ``x`` and ``y`` axis to form a torus. No wrapping occurs in the ``z`` axis. 
+
 The following example defines a spatial partition in three dimensions.
 For continuously spaced agents in 2D space ``P`` in the x z dimension should be equal to ``1`` and therefore a ``zmin`` of ``0`` would require a ``zmax`` value equal to ``radius`` (even in this case a message variable with name ``z`` is still required).
 
@@ -355,6 +363,8 @@ For continuously spaced agents in 2D space ``P`` in the x z dimension should be 
         <gpu:zmax>10</gpu:zmax>
     </gpu:partitioningSpatial>  
 
+.. warning::
+   Outputting messages with ``x``, ``y`` or ``z`` values outside of the environment bounds is undefined and may result in unexpected behaviour. Currently messages are clamped to the final partition in the relevant dimension, however this should not be relied upon.
 
 Defining an Agent function
 ==========================

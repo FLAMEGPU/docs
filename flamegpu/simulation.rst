@@ -112,91 +112,59 @@ The Command Arguments have been set the simulation executable can be launched by
    :width: 75.0%
    
 
-Compilation using Make (for Linux)
-==================================
-
-Linux compilation is controlled using ``make``, with makefiles provided for each example. 
+Compilation using Make (for Linux and Windows)
+==============================================
 
 
-#. Install Ubuntu 16.04 or later. 
-#. Install all the needed operating system build tools and libraries:  
-    
-   .. code-block:: bash
+``make`` can be used to build FLAME GPU under linux and windows (via a windows implementation of ``make``).
 
-       sudo apt-get install g++ git make libxml2-utils
+Makefiles are provided for each example project ``examples/project/Makefile``), and for batch building all examples (``examples/Makefile``).
 
-   Then `install CUDA <https://developer.nvidia.com/cuda-downloads>`__.
-
-   Minimum supported versions are ``g++ 4.8`` and ``cuda 7.5``.
+To build a console example in release mode:
 
 #. Download the FLAME GPU SDK release or alternatively clone the project using Git (it will be cloned into the folder ``FLAMEGPU``):  
 
-   .. code-block:: bash
+    cd examples/EmptyExample/
+    make console
 
-       git clone https://github.com/FLAMEGPU/FLAMEGPU.git
+Or for a visualisation example in release mode:
 
-#. If the path to your CUDA Toolkit is not ``/usr/local/cuda-7.5`` then set the ``CUDA_PATH`` environment variable to the relevant location e.g.:
+    cd examples/EmptyExample/
+    make Visualisation
 
-   .. code-block:: bash
+*Debug* mode executables can be built by specifying ``debug=1`` to make, ``make all debug=1``. The generated executable can then be debugged using ``cuda-gdb``.
 
-       export PATH=/opt/cuda
+In the project specific portion of the Makefile (i.e ``examples/EmptyExample/Makefile``) several variables exist which allow the project to be customised.
 
-#. Build the SDK in Release mode (this is the default mode):
+- ``EXAMPLE``: Controls the name of the project / executables generated.
+- ``HAS_VISUALISATION``: Determins if a visualisation mode should be supported or not.
+- ``CUSTOM_VISUALISATION``: Determins if a custom or the default visualisation should be used.
+- ``FLAMEGPU_ROOT``: The relative path from the Makefile to the main ``FLAMEGPU`` directory. I.e. ``../../``
+- ``EXAMPLE_BIN_DIR``: Path to the location to place executables.
+- ``EXAMPLE_BUILD_DIR``: Path to the build directory for this project.
+- ``SMS``: Set the CUDA Compute Capabilities to build executables for
+- ``TRANSFORM_*_XLS``: Prevent the relevant ``XSLT`` file from being transformed
 
-   .. code-block:: bash
+  - ``TRANSFORM_HEADER_XSLT_DISABLED``: ``header.xslt``
+  - ``TRANSFORM_FLAMEGPU_KERNALS_XSLT_DISABLED``: ``flamegpu_kernals.xslt``
+  - ``TRANSFORM_IO_XSLT_DISABLED``: ``io.xslt``
+  - ``TRANSFORM_SIMULATION_XSLT_DISABLED``: ``simulation.xslt``
+  - ``TRANSFORM_MAIN_XSLT_DISABLED``: ``main.xslt``
+  - ``TRANSFORM_VISUALISTION_XSLT_DISABLED``: ``visualistion.xslt``
 
-       cd FLAMEGPU/examples
-       make
+For more information on building FLAME GPU via make, run ``make help`` in an example directory.
 
-   This will process the XML model and build both console and visualisation version of the model in release mode. You can build the Debug version by specifying ``dbg`` value on the make line instead (``make all dbg=1``).  Moreover, for each example, executables can also be built in either Visualisation (``make Visualisation_mode``) or Console (``make Console_mode``) mode.
+Creating a New FLAME GPU Example Project
+========================================
 
-   .. code-block:: bash
+The simplest way to create a new FLAME GPU example project is to copy and modify an existing project, renaming visual studio solution / project files, and modifying the Makefile.
 
-       cd examples/{example name}
-       make XSLTPREP
-       make Visualisation_mode
-       # or
-       make Console_mode
+A python script is provided to simplify this process for you, makeing the required changes. I.e. to create a new example projected called ``NewExample``, based on the ``EmptyExample`` run the following command.
 
-   Replace ``{example name}`` with the name of the specific example you wish to build.
+.. code-block:: bash
 
-#. After building the executables, run the examples by executing the relevant bash script inside the ``bin/linux-x64`` folder:
+    python tools/new_example.py --base EmptyExample NewExample
 
-   * Visualisation mode: ``./*_vis.sh}``
-   * Console mode: ``./*_console.sh iter='arg'``
-
-   Note: XML output is disabled but can be re-enabled by setting the ``XML_OUTPUT`` definition in the automatically generated ``src/dynamic/main.cu`` file to ``1``. After rebuilding and running the simulation again this will create an XML file (saved in the location of the initial input file) for each iteration which will contain the state of the agents after applying a single simulation iteration to the agents (in the same formal as ``0.xml``. You can view this file (``cat`` command) to see how the agent properties have changed.
-
-   The parameters passed to the simulation are the initial model file and the number of simulation runs (iterations). Note that by default, the number of iterations is set to ``1``. In order to modify the number of iterations, pass an argument to the shell script (e.g: ``iter=50``):
-
-#. Debugging examples:
-
-   .. code-block:: bash
-
-       cd examples/{folder name}
-       make Console_mode dbg=1
-
-   Debugging with ``cuda-gdb``:
-
-   .. code-block:: bash
-
-       cuda-gdb ../../bin/x64/Debug_Console/{folder name}_console
-       ..
-       (cuda-gdb) run iterations/0.xml 2
-       ...
-
-   Debugging with ``valgrind``:
-
-   .. code-block:: bash
-
-       valgrind --tool=memcheck {executable} iterations/0.xml 1
-
-   where ``executable`` is ``../../bin/x64/Debug_Console/{folder name}_console``.
-
-
-#. Clean generated dynamic and object files with ``make clobber``. Note that you need to use ``make XSLTPREP`` to generate the ``.cu`` files first, then build a specific target (console or visualisation mode). ``make all`` would generate the dynamic files as well as building the executables. And ``make clean`` only deletes the object files and leaves the ``.cu`` files behind.
-
-#. For more details on how to build specific targets for each example, run ``make help``
 
 Simulation Execution Modes and Options
 ======================================
@@ -208,14 +176,22 @@ Console Mode
 ------------
 
 
-Simulation executables built for console execution require two arguments (usage shown below).
-The first of which is a file location for an initial agent XML file containing the initial agent data.
-The second argument is the number of simulation iterations which should be processed.
-A number of optional CUDA arguments may also be passed (i.e. ``device=1`` to specify the second CUDA enabled GPU device within the host machine should be used for simulation) if required.
+Simulation executables built for console execution require two arguments, with several optional arguments.
 
 .. code-block:: bash
 
-    FLAMEGPU_simulation.exe [XML model data] [Iterations] [Optional CUDA arguments]
+    usage: EmptyExample [-h] [--help] input_path num_iterations [cuda_device_id] [XML_output_override]
+
+    required arguments:
+      input_path           Path to initial states XML file OR path to output XML directory
+      num_iterations       Number of simulation iterations
+
+    options arguments:
+      -h, --help           Output this help message.
+      cuda_device_id       CUDA device ID to be used. Default is 0.
+      XML_output_override  Flag indicating if iteration data should be output as XML
+                           0 = false, 1 = true. Default 1
+
 
 
 The result of running the simulation will be a number of output XML files which will be numbered from ``1`` to ``n``, where ``n`` is the number of simulations specified by the ``Iterations`` argument.
@@ -226,16 +202,23 @@ Visualisation Mode
 
 Simulation executables built for visualisation require only a single argument (usage shown below) which is the same as the first argument for with console execution (an initial agent XML file).
 The number of simulations iterations is not required as the simulation will run indefinitely until the visualisation is closed.
-As with console execution it is possible to specify optional CUDA arguments.
+As with console execution there are additional optional arguments available.
 
 .. code-block:: bash
 
-    Usage: main [XML model data] [Optional CUDA arguments]
+    usage: EmptyExample [-h] [--help] input_path [cuda_device_id]
+
+    required arguments:
+      input_path           Path to initial states XML file OR path to output XML directory
+
+    options arguments:
+      -h, --help           Output this help message.
+      cuda_device_id       CUDA device ID to be used. Default is 0.
 
 
 Many of the options for the default visualisation are contained within the ``visualisation.h`` header file and include the following;
 
-- ``SIMULATION_DELAY`` Many simulations are executed extremely quickly making visualisation a blur. This definition allows an artificial delay by executing this number of visualisation draw loops before each simulation iteration is processed.
+- ``SIMULATION_DELAY`` Many simulations are executed extremely quickly making visualisation a blur. This definition allows an artificial delay by executing this number of visualisation render loops before each simulation iteration is processed.
 - ``WINDOW_WIDTH`` and ``WINDOW_HEIGHT`` Specifies the size of the visualisation window 
 - ``NEAR_CLIP`` and ``FAR_CLIP`` Specifies the near an far clipping plane used for OpenGL rendering.
 - ``SPHERE_SLICES`` The number of slices used to create the sphere geometry representing a single agent in the visualisation.
@@ -243,7 +226,23 @@ Many of the options for the default visualisation are contained within the ``vis
 - ``SPHERE_RADIUS`` The physical size of the sphere geometry representing a single agent in the visualisation. This will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
 - ``VIEW_DISTANCE`` The camera viewing distance. Again this will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
 - ``LIGHT_POSITION`` The visualisation will contain a single light source which will be located at this position.
+- ``PAUSE_ON_START`` If defined the simulation is paused on launch, allowing the simulation to be visualised one iteration at a time. 
 
+
+The colour of spheres in the default visualisation is determined using an agent variable ``colour`` (or alternatively ``type`` or ``state``, however ``colour`` is the preferred option.) This can be an ``int`` or a ``float``, with a set of distinct colours available, using the following defined values:
+
+- ``FLAME_GPU_VISUALISATION_COLOUR_BLACK``
+- ``FLAME_GPU_VISUALISATION_COLOUR_RED``
+- ``FLAME_GPU_VISUALISATION_COLOUR_GREEN``
+- ``FLAME_GPU_VISUALISATION_COLOUR_BLUE``
+- ``FLAME_GPU_VISUALISATION_COLOUR_YELLOW``
+- ``FLAME_GPU_VISUALISATION_COLOUR_CYAN``
+- ``FLAME_GPU_VISUALISATION_COLOUR_MAGENTA``
+- ``FLAME_GPU_VISUALISATION_COLOUR_WHITE``
+- ``FLAME_GPU_VISUALISATION_COLOUR_BROWN``
+
+
+.. @todo - Document the controls for the default visualisation.
 
 Creating a Custom Visualisation
 ===============================
@@ -295,3 +294,129 @@ Message Iteration
 - For small populations of agents (generally less than 2000 but dependant on hardware and the model) non partitioned messaging has less overhead and is similarly comparable to spatial partitioning.
 - For large populations of distributed agents with limited communication spatially partitioned message communication will be much faster.
 
+
+Detailed profiling using NVTX
+=============================
+
+Additional profiling information can be exported for the visual profiler using the Nvidia Tools Extension Library (NVTX). 
+NVTX markers and ranges can be optionally enabled to provide enhanced profiling. 
+
+Enabling NVTX Markers via makefile
+----------------------------------
+
+To achieve this using the ``Makefile``, simply add ``profile=1`` as an argument to make, on any platform:
+
+.. code-block:: bash
+
+    make console profile=1
+
+Enabling NVTX Markers in Visual Studio
+--------------------------------------
+
+To enable NVTX markers in visual studio the solution must be modified to add the relevant definition, include path and linker flags as follows:
+
+
+- ``C/C++ > Preprocessor > Preprocessor Definitions``
+    - Add ``PROFILE``
+- ``CUDA C/C++ > Common > Additional Include Directories``
+    - Add ``$(NVTOOLSEXT_PATH)include``
+- ``Linker > General > Additional Library Directories``
+    - Add ``$(NVTOOLSEXT_PATH)lib/x64``
+- ``Linker > Input > Additional Dependencies``
+    - Add ``nvToolsExt64_1.lib``
+
+
+
+Parameter Exploration
+=====================
+
+Agent Based Simulations typically have many parameters which control certain aspects of the simulation, which can be used for calibration. As of FLAME GPU 1.5.0 the simplest method to achieve this is to use multiple initial states files for separate simulations which contain different values for environmental constants, and run the simulation on each of the files. 
+
+For instance, for a model with 2 environmental constants representing model parameters called ``SEED`` and ``INIT_POPULATION`` which are defined in ``XMLModelFile.XML`` within the ``<gpu:environment>`` tag as follows:
+
+.. code-block:: xml
+   :linenos:
+
+   <gpu:constants>
+     <gpu:variable>
+       <type>unsigned int</type>
+       <name>SEED</name>
+       <defaultValue>0</defaultValue>
+     </gpu:variable>
+     <gpu:variable>
+       <type>unsigned int</type>
+       <name>INIT_POPULATION</name>
+       <defaultValue>1</defaultValue>
+     </gpu:variable>
+   </gpu:constants>
+
+If we wish to run this with ``SEED`` values ``0``, ``1`` & ``2`` and ``INIT_POPULATION`` values ``10``, ``100`` and ``1000`` this could be achieved with 9 initial states files (stored in separate folders to avoid overwriting output). A script could be used to create these files for large parameter sweeps. 
+
+This could have the following structure:
+
+.. code-block:: none
+
+   iterations
+       ├── 0-10
+       │   └── 0.xml
+       ├── 0-100
+       │   └── 0.xml
+       ├── 0-1000
+       │   └── 0.xml
+       ├── 1-10
+       │   └── 0.xml
+       ├── 1-100
+       │   └── 0.xml
+       ├── 1-1000
+       │   └── 0.xml
+       ├── 2-10
+       │   └── 0.xml
+       ├── 2-100
+       │   └── 0.xml
+       └── 2-1000
+           └── 0.xml
+
+The contents of each file would then be different. Assuming agents are created via an ``INIT`` function, each ``0.xml`` file could look as follows. 
+
+
+``0-10/0.xml`` would contain:
+
+.. code-block:: xml
+   :linenos:
+
+   <states>
+       <itno>0</itno>
+       <environment>
+           <SEED>0</SEED>
+           <INIT_POPULATION>10</INIT_POPULATION>
+       </environment>
+   </states>
+
+``0-100/0.xml`` would contain:
+
+.. code-block:: xml
+   :linenos:
+
+   <states>
+       <itno>0</itno>
+       <environment>
+           <SEED>0</SEED>
+           <INIT_POPULATION>100</INIT_POPULATION>
+       </environment>
+   </states>
+
+
+``0-1000/0.xml`` would contain:
+
+.. code-block:: xml
+   :linenos:
+
+   <states>
+       <itno>0</itno>
+       <environment>
+           <SEED>0</SEED>
+           <INIT_POPULATION>1000</INIT_POPULATION>
+       </environment>
+   </states>
+
+And so on. Simulations could then be launched in batch via a script, either sequentially or concurrently depending upon the memory requirements of each model, and the availability of GPUs.

@@ -269,16 +269,148 @@ The example below shows an agent function (``input_messages``) of a discrete age
         return 0;
     }
 
+Graph Edge Partitioned Message Iteration
+----------------------------------------
 
-.. \subsection{Graph-Based Communication Message Iteration}
-.. \label{sec:graph-comm-message-iteration}
-.. \textbf{@todo}
+For graph edge partitioned messages the dynamically generated message API functions rely on the use of a message boundary structure. The structure holds important information which determines which messages belong to each edge of the graph data structure. 
+ As with other message types the first argument is the input message list. 
+ The second argument is the message boundary structure, and the third argument is the id of the edge for which messages should be loaded (usually the edge where the agent is located).
+ The ``get_next`` message API function differs only from the non partitioned example in that the message boundary structure is passed as an additional parameter.
 
+ The example below shows the use of graph edge partitioned messaging to access messages from the edge as the agent currently resides, counting the number of agents. 
+
+.. code-block:: c
+   :linenos:
+
+    __FLAME_GPU_FUNC__ int input_messages(xmachine_memory_Agent* agent, xmachine_message_location_list* location_messages, xmachine_message_location_bounds* message_bounds){
+        // Initialise a variable
+        unsigned int count = 0;
+
+        // Get the first message from the message list for the target edge
+        xmachine_message_location* current_message = get_first_location_message(location_messages, message_bounds, agent->edge_id);
+
+        // Loop through the messages
+        while(current_message){
+            // No need to check that the current_message->edge_id matches, as this is guaranteed by the partitioning scheme
+            // Increment the counter
+            count++;
+
+            // Get the next message from the message list.
+            current_message = get_next_location_message(current_message, location_messages, message_bounds);
+        }
+
+        // Store the count
+        agent->count = count;
+
+        return 0;
+    }
+
+
+Message Type Macro Definition
+-----------------------------
+
+To increase the portability of agent function scripts, a preprocessor macro is defined in ``src/dynamic/header.h`` detailing which message partitioning scheme is used for each message type. 
+
+I.e. 
+
+.. code-block:: c
+   :linenos:
+  
+    #define xmachine_message_MESSAGE_partitioningNone
+    #define xmachine_message_MESSAGE_partitioningDiscrete
+    #define xmachine_message_MESSAGE_partitioningSpatial
+    #define xmachine_message_MESSAGE_partitioningGraphEdge
+
+These macros can then be used to write a single ``functions.c`` file which can be used with different partitioning shchemes in the ``XMLModelFile.XML``.
+
+.. code-block:: c
+   :linenos:
+
+    #if defined(xmachine_message_MESSAGE_partitioningNone)
+        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_MESSAGE_list* MESSAGE_messages){
+    #elif defined(xmachine_message_MESSAGE_partitioningSpatial)
+        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_MESSAGE_list* MESSAGE_messages, xmachine_message_MESSAGE_PBM* partition_matrix){
+    #endif
+        // ...
+        #if defined(xmachine_message_MESSAGE_partitioningNone)
+            xmachine_message_MESSAGE* current_message = get_first_MESSAGE_message(MESSAGE_messages);
+        #elif defined(xmachine_message_MESSAGE_partitioningSpatial)
+            xmachine_message_MESSAGE* current_message = get_first_MESSAGE_message(MESSAGE_messages, partition_matrix, agent->x, agent->y, agent->z);
+        #endif
+        while (current_message) {
+            // ...
+            #if defined(xmachine_message_MESSAGE_partitioningNone)
+                current_message = get_next_MESSAGE_message(current_message, MESSAGE_messages);
+            #elif defined(xmachine_message_MESSAGE_partitioningSpatial)
+                current_message = get_next_MESSAGE_message(current_message, MESSAGE_messages, partition_matrix);
+            #endif
+        }
+        // ...
+    }
 
 Use of the Agent Output Simulation API
 ======================================
 
-Within an agent function script agent output is possible by using a message output API function.
+Within an agent function script, agent output is possible on the host from Init and Step functions, and on the device by using a agent output API function.
+
+Agent Creation from the Host
+----------------------------
+
+Within ``__FLAME_GPU_INIT_FUNC`` and ``__FLAME_GPU_STEP_FUNC`` (or within custom visualisation code) it is possible to generate one or more agents of a specific type and state, and transfer them to the device for the next simulation iteration.
+
+Several steps must be followed to make use of this feature.
+
+1. Allocate enough host (CPU) memory for all as many agents as you would like to create within the host function.
+2. Populate the agent data on the host.
+3. Copy agent data from the host to the device.
+4. Deallocate host memory when it is no longer required.
+
+If agents are only create in an ``INIT`` function, then the above procedure can be local to that ``INIT`` function.
+
+If agents are going to be created in ``STEP`` functions, it is more efficient to split this procedure over an ``INIT`` function, a ``STEP`` function and an ``EXIT`` function.
+In this case, in ``functions.c`` you should declare a host memory in the global scope. An ``INIT`` function is then used to allocate sufficient memory, agents are created in the ``STEP`` function and lastly the ``EXIT`` function is used to deallocate and free resources.
+
+If you are only creating a single agent of type ``Agent`` using the ``default`` state, the relevant data types and functions are:
+
+.. code-block:: c
+   :linenos:
+
+    // Declare a pointer to a single agent structure, and allocate the memory.
+    xmachine_memory_Agent * h_agent = h_allocate_agent_Agent();
+    // Populate the agent values as desired.
+    // Copy the single agent to the default in a synchronous operation.
+    h_add_agent_Agent_default(h_agent);
+    // Free the host memory when no longer required.
+    h_free_agent_Agent(&h_agent);
+
+
+If you would like to create multiple (``N``) agents of type ``Agent`` to the ``default`` state in a single init/step function, the relevant data types and functions are:
+
+.. code-block:: c
+   :linenos:
+
+    // Declare a pointer to an array of agent structures.
+    xmachine_memory_Agent ** h_agent_AoS;
+    // Allocate enough memory on the host for N agents
+    h_agent_AoS = h_allocate_agent_Agent_array(N);
+    // Populate the agents as required.
+    // Copy the agents to the device. Here count is an integer less than or equal to N.
+    h_add_agents_Agent_default(h_agent_AoS, count);
+    // Deallocate memory. 
+    // The total number of agents is required to avoid memory leaks.
+    h_free_agent_Agent_array(&h_agent_AoS, N);
+
+For an example of this being used please see the ``HostAgentCreation`` example.
+
+**Note**: Creating agents from the host is a relatively expensive process, as host to device memory copies are required.
+Higher performance is achieved when the number of copies as minimised, by batching creating multiple agents at once rather than many copies of individual agents.
+
+
+Agent Creation from the Device
+------------------------------
+
+Agent functions can be defined with the ``xagentOutputs`` tag containing one or more ``gpu:xagentOutput`` tags, allowing the agent function to create new agents of the specified ``<xagentName>`` and ``<state>``. 
+
 For each agent type defined within the XMML model definition the dynamically generated simulation code will create an agent output function of the following form; 
 
 .. code-block:: c
@@ -315,7 +447,6 @@ For clarity the agent output API function prototype (normally found in ``header.
         return 0;
     }
 
-.. TODO: Creating agents on the host
 
 Using Random Number Generation
 ==============================
@@ -365,10 +496,10 @@ When specifying an agent function declaration this order must be observed.
 Host Simulation Hooks
 =====================
 
-Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code, but are able to execute GPU Runtime Host Functions \cef{????}. Host simulation Hooks are defined in the dynamically created file `simulation.cu`. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
+Host simulation hooks functions which are executed outside of the main simulation iteration. More specifically they are called by CPU code during certain stages of the simulation execution. Host simulation Hooks should be defined in your `functions.c` file and should also be registered in the model description. There are numerous hook points (*init*, *step* and *exit*) which can are be explained in the proceeding sections. 
 
-Initialisation Functions
-------------------------
+Initialisation Functions (API)
+------------------------------
 
 Any initialisation functions defined within the XMML model file (see :ref:`Initialisation Functions`) is expected to be declared within an agent function code file and will automatically be called before the first simulation iteration.
 The initialisation function declaration should be preceded with a `__FLAME_GPU_INIT_FUNC__` macro definition, should have no arguments and should return void.
@@ -385,10 +516,10 @@ The below example demonstrated an initialisation function named `initConstants` 
 
 
 
-Step Functions
---------------
+Step Functions (API)
+--------------------
 
-If a step function was defined in the XMMl model file (section \ref{sec:stepFunc}) then it should be defined in a similar way to the initialisation functions as described above in section \ref{sec:391}. These functions will be called after each iteration step. An example is shown below. A common use of a step functions is to output logs from analytics functions when full agent XML output is not required. In this case an init or step function can be used for creating and closing a file handle respectively.
+If a step function was defined in the XMMl model file (section :ref:`Step Functions`}) then it should be defined in a similar way to the initialisation functions as described above in section :ref:`Initialisation Functions (API)`. These functions will be called after each iteration step. An example is shown below. A common use of a step functions is to output logs from analytics functions when full agent XML output is not required. In this case an init or step function can be used for creating and closing a file handle respectively.
 
 .. code-block:: c
    :linenos:
@@ -400,10 +531,10 @@ If a step function was defined in the XMMl model file (section \ref{sec:stepFunc
 
 
 
-Exit Functions
---------------
+Exit Functions (API)
+--------------------
 
-If an exit function was defined in the XMMl model file (section \ref{sec:endFunc}) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below. 
+If an exit function was defined in the XMMl model file (section :ref:`Exit Functions`) then it should be defined in a similar way to the initialisation and step functions as described above. It will be called upon finishing the program. An example is shown below. 
 
 .. code-block:: c
    :linenos:
@@ -414,30 +545,71 @@ If an exit function was defined in the XMMl model file (section \ref{sec:endFunc
         print_to_file();
     }
 
+
+Note that Exit functions are not executed by the default visualisation.
                                     
                                     
 
 Runtime Host Functions
 ======================
              
-Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations.
+Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations. In addition to the functionality in this section it is also possible to create agents on the host which are injected into the simulation (see :ref:`Agent Creation from the Host`).
              
-Setting Simulation Constants (Global Variables)
------------------------------------------------
+Getting and Setting Simulation Constants (Global Variables)
+-----------------------------------------------------------
 
-Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variable definition (see :ref:`Simulation Constants (Global Variables)`).
-It is not possible to set constant variables within an agent function however, the simulation API creates methods for setting simulation constants which may be called either at the start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).
+Simulation constants defined within the environment section of the XMML model definition (or the initial agents state file) may be directly referenced within an agent function using the name specified within the variables definition (see :ref:`Simulation Constants (Global Variables)`).
+It is not possible to set constant variables within an agent function, however, the simulation API creates methods for setting simulation constants which may be called from :ref:`Host Simulation Hooks`. E.g. At start of the simulation (either manually or within an initialisation function) or between simulation iterations (for example as part of an interactive visualisation).
 The code below demonstrates the function prototype for setting a simulation constant with the name `A_CONSTANT`.
 
 .. code-block:: c
 
     extern "C" void set_A_CONSTANT (float* h_A_CONSTANT);
 
+The function requires a pointer to a host variable (or array in the case of an environment variable array). An equivalent function is created for the getting of simulation constants on the host. E.g.
 
-The function is declared using the `extern` keyword which allows it to be linked to by externally compiled code such as a visualisation or custom simulation loop.
+.. code-block:: c
 
-.. TODO get for env constants
-.. TOD get and set for array constants
+    extern "C" float* get_A_CONSTANT();
+
+This function returns a host pointer to the variable (or array in the case of an environment variable array).
+
+The functions for getting and setting constants are all declared using the `extern` keyword which allows them to be linked by externally compiled code such as a custom visualisation or custom simulation loop.
+
+
+Getting Static Graph Data 
+-------------------------
+
+To access data from a staticGraph defined in environment tag of the XMLModelFile, several functions are defined, which can be called from host or device functions.
+The following examples are for a graph named ``GRAPH``.
+
+The following 4 methods are always defined, for any graph.
+
+.. code-block:: c
+   
+   // Get the number of vertices in the graph data structure, less than or equal to the bufferSize
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_count();
+
+   // Get the number of edges in the graph data structure, less than or equal to the bufferSize
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_edge_count();
+
+   // Get the index of the first edge which leaves a given vertex (index)
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_first_edge_index(unsigned int index);
+
+   // Get the number of edges which leaves a given vertex (index)
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_num_edges(unsigned int index);
+
+
+In addition, for each member variable defined for each vertex, and each edge a function is defined, which returns the variable of the appropriate type. If the variable is an array an additional parameter is provided for the element of the array.
+
+
+.. code-block:: c
+   
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_VARIABLE(unsigned int vertexIndex);
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_ARRAY(unsigned int vertexIndex, unsigned int element);
+
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_edge_VARIABLE(unsigned int edgeIndex);
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_edge_ARRAY(unsigned int edgeIndex, unsigned int element);
 
 
 
@@ -451,7 +623,7 @@ Each `CONTINUOUS` type agent can be sorted based on key value pairs which come f
     void sort_*agent*_default(void (*generate_key_value_pairs)(unsigned int* keys, unsigned int* values, xmachine_memory_*agent*_list* agents))
 
 
-The function takes as an argument a function pointer to a GPU `__global__` function. This function it points to takes two unsigned int arrays in which it will store the resulting key and value data, and `xmachine_memory_*agent*_list` which contains a structure of arrays of the agent. This type is generated dynamically depending on the agent variables defined in the XML model file (section \ref{sec:231}). For an agent with two float variables `x` and `y`, it has the following structure:
+The function takes as an argument a function pointer to a GPU `__global__` function. This function it points to takes two unsigned int arrays in which it will store the resulting key and value data, and `xmachine_memory_*agent*_list` which contains a structure of arrays of the agent. This type is generated dynamically depending on the agent variables defined in the XML model file ( :ref:`Agent Memory` ). For an agent with two float variables `x` and `y`, it has the following structure:
 
 .. code-block:: c
    :linenos:
@@ -463,7 +635,7 @@ The function takes as an argument a function pointer to a GPU `__global__` funct
     }
 
 
-The value `xmachine_memory_agent_MAX` is the and buffer size of number of agents (section \ref{sec:23}). This struct can be accessed to assign agent data to the key and value arrays. The following example is given within a FLAME step function which sorts agents by 1D position
+The value `xmachine_memory_agent_MAX` is the buffer size of number of agents (section :ref:`Defining an X-Machine Agent`). This struct can be accessed to assign agent data to the key and value arrays. The following example is given within a FLAME step function which sorts agents by 1D position
 
 .. code-block:: c
    :linenos:
@@ -497,13 +669,31 @@ The value `xmachine_memory_agent_MAX` is the and buffer size of number of agents
 Analytics functions
 -------------------
 
-A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count* function will only be created for single-value (not array) `int` variables. Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
+A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count*, *min* and *max* functions will only be created for single-value (not array) variables. Count functions are limited to `int` type variables (including short, long and vector type variants), min and max functions are limited to non vector type variables (e.g. no dvec2 type of variables). Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
 
 .. code-block:: c
    :linenos:
    
     reduce_agentName_default_varName_variable();
     count_agentName_default_varName_variable(int count_value);
+    min_agentName_default_varName_variable();
+    max_agentName_default_varName_variable();
+
+
+Accessing Agent Data
+--------------------
+
+As of FLAME GPU 1.5.0 it is possible to directly access agent data from the device in Host functions (Init, Step and Exit). It is not possible to modify agent data from host functions.
+
+For each agent type (``AGENT``), state (``STATE``) and each agent variable (``VARIABLE``) a function is generated to access the variable, i.e. ``get_AGENT_STATE_variable_VARIABLE(index)``  which returns the value, by transparently copying the agent data from the host to the device, for the given variable from the relevant state list, which has potentially significant performance implications.
+
+For non-array agent variables, a single argument ``index`` refers to the position within the state list for the requested agent. Out of bounds accesses will return the default value for the agent variable.
+
+For array agent variables, two arguments are required, ``index`` and ``element``, where ``index`` is the agent position within the state list, and ``element`` is the 0 indexed element of the agent array. 
+I.e. ``get_AGENT_STATE_variable_ARRAY(0, 2)`` would return the 2nd element of the agent variable ``ARRAY`` for the 0th ``AGENT`` agent in the state ``STATE``.
+
+This enables the creation of custom agent output functions as step functions, if you do not require all agent data in output XML files. For instance, it can be used to create a CSV file. See the ``customOutputStepFunc`` step function for the ``HostAgentCreation`` example.
+
 
 
 Instrumentation for timing and population sizes

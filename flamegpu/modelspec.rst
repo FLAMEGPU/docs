@@ -18,8 +18,8 @@ A high level overview of a an XMML model file is described below with various se
    :linenos:
 
     <gpu:xmodel
-        xmlns:gpu="http://www.dcs.shef.ac.uk/\textasciitilde{}paul/XMMLGPU"
-        xmlns="http://www.dcs.shef.ac.uk/\textasciitilde{}paul/XMML">
+        xmlns:gpu="http://www.dcs.shef.ac.uk/~paul/XMMLGPU"
+        xmlns="http://www.dcs.shef.ac.uk/~paul/XMML">
         <name>Model Name</name>    <!-- optional -->
         <gpu:environment>...</gpu:environment>
         <xagents>...</xagents>
@@ -32,17 +32,18 @@ The Environment
 ===============
 
 The environment element is used to hold global information which relates to the simulation.
-This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`) and an optional number of initialisation, step and exit functions.
+This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`), an optional number of initialisation, step and exit functions and an optional number of graph data structures.
 
 .. code-block:: xml
    :linenos:
 
     <gpu:environment>
         <gpu:constants>...</gpu:constants>            <!-- optional -->
-        <gpu:functionFiles>...</gpu:functionFiles>    <!-- not optional -->
+        <gpu:functionFiles>...</gpu:functionFiles>    <!-- required -->
         <gpu:initFunctions>...</gpu:initFunctions>    <!-- optional -->
         <gpu:stepFunctions>...</gpu:stepFunctions>    <!-- optional -->
-        <gpu:endFunctions>...</gpu:endFunctions>      <!-- optional -->
+        <gpu:exitFunctions>...</gpu:exitFunctions>    <!-- optional -->
+        <gpu:graphs>...</gpu:graphs>                  <!-- optional -->
     </gpu:environment>
 
 
@@ -51,7 +52,7 @@ Simulation Constants (Global Variables)
 ---------------------------------------
 
 Simulation constants are defined as (global) variables and may be of type int, float or double (on GPU hardware with double support i.e. CUDA Compute capability 2.0 or beyond).
-Constant variables must each have a unique name which is used to reference them within simulation code and can have an optional static array length (of size greater than 0).
+Constant variables must each have a unique name which is used to reference them within simulation code and can have an optional static array length (of size greater than 0). Table [var_types]  summarizes the supported data types for the environment variables.
 The description element arrayLength element and defaultValue element are all optional.
 The below code shows the specification of two constant variables: the first represents a single ``int`` constant (with a default value of ``1``), the second indicates an ``int`` array of length ``5``.
 Simulation constants can be set either as default values as show below, within the initial agent XML file (see :ref:`Initial Simulation Constants`) or at run-time are described in :ref:`Host Simulation Hooks`. Values set in initial XML values will overwrite a default value and values which are set at runtime will overwrite values set in initial agent XML files.
@@ -96,7 +97,7 @@ Initialisation Functions
 Initialisation functions are user defined functions which can be used to set constant global variables. 
 Any initialisation functions defined within the ``initFunctions`` element are called a single time by the automatically generated simulation code in the order that they appear during the initialisation of the simulation. 
 If an ``initFunctions`` element is specified there must be at least a single ``initFunction`` child element with a unique name. 
-:ref:`Initialisation Functions` demonstrates how to specify initialisation functions within a function file.
+:ref:`Initialisation Functions (API)` demonstrates how to specify initialisation functions within a function file.
 
 .. code-block:: xml
    :linenos:
@@ -112,7 +113,7 @@ If an ``initFunctions`` element is specified there must be at least a single ``i
 Step Functions
 --------------
 
-Step functions are similarly defined to initialisation functions, requiring at least a single ``stepFunction`` child element if the ``stepFunctions`` element is defined. These functions are called at the end of each iteration step, i.e. after all the layers, as defined in section \ref{sec:26}, are executed each step. Example uses of this function are to calculate agent averages during the iteration step or sort functions.
+Step functions are similarly defined to initialisation functions, requiring at least a single ``stepFunction`` child element if the ``stepFunctions`` element is defined. These functions are called at the end of each iteration step, i.e. after all the layers, as defined in section :ref:`Step Functions (API)`, are executed each step. Example uses of this function are to calculate agent averages during the iteration step or sort functions.
 
 .. code-block:: xml
    :linenos:
@@ -128,6 +129,7 @@ Exit Functions
 --------------
 
 Exit functions are again like the other function types defined above, requiring at least a single ``exitFunction`` child element if the ``exitFunctions`` element is defined. These functions are called at the end of the whole simulation. An example use of this function would be to calculate final averages of agent variables or print out final values.
+:ref:`Exit Functions (API)` demonstrates how to specify initialisation functions within a function file.
 
 .. code-block:: xml
    :linenos:
@@ -138,6 +140,74 @@ Exit functions are again like the other function types defined above, requiring 
         </gpu:exitFunction>
     </gpu:exitFunctions>
 
+
+Graph Data Structures
+---------------------
+
+Some agent based models may contain environmental data structures as a graph. To ensure high performance access of this data, and enable communication restricted to a graph based data structure FLAME GPU 1.5.0 introduces a list of graphs to the environment.
+
+Graphs are implemented using the Compressed Spares Row (CSR) data, enable high performance read access. Currently it is not possible to pragmatically modify (or update) the graph data structure at runtime.
+
+The following example shows the definition of a static graph with the name ``graph``, with a text description.
+The ``<gpu:loadFromFile>`` tag defines that the graph is to be loaded from a ``json`` file stored on disk, called ``network.json``. This path is relative to the initial states file. Alternatively the graph can be loaded from an XML format via ``<gpu:xml>relative/path/to/file.xml</gpu:xml>``.
+
+The ``<gpu:vertex>`` and ``<gpu:edge>`` tags define the list of ``<variables>`` which the data structure contains, and the maximum number of each type of element via the ``<gpu:bufferSize>`` tag. 
+Vertices require a variable called `id`, with an integer based type, such as ``int``, ``unsigned int``, ``unsigned long long int`` etc. 
+Edges require an ``id`` variable of an integer type, a ``source`` variable of an integer type referring to a vertex id, and a ``destination`` variable of an integer type referring to a vertex id.
+
+
+.. code-block:: xml
+   :linenos:
+
+    <gpu:graphs>
+      <gpu:staticGraph>
+        <gpu:name>graph</gpu:name>
+        <gpu:description>A graph containing some static data</gpu:description> <!-- Optional -->
+        <gpu:loadFromFile>
+            <gpu:json>graph.json</gpu:json> <!-- or <gpu:xml>graph.xml</gpu:xml> -->
+        </gpu:loadFromFile>
+        <gpu:vertex>
+          <variables>
+            <gpu:variable>                    <!-- vertices require an id variable of an integer type -->
+              <type>unsigned int</type>
+              <name>id</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+            <gpu:variable>
+              <type>float</type>
+              <name>x</name>
+              <defaultValue>1.0f</defaultValue>
+            </gpu:variable>
+            <gpu:variable>
+              <type>float</type>
+              <name>y</name>
+              <defaultValue>1.0f</defaultValue>
+            </gpu:variable>
+          </variables>
+          <gpu:bufferSize>1024</gpu:bufferSize>
+        </gpu:vertex>
+        <gpu:edge>
+          <variables>
+            <gpu:variable>                    <!-- edges require an id variable of an integer type -->
+              <type>unsigned int</type>
+              <name>id</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+            <gpu:variable>                    <!-- edges require a source variable of an integer type -->
+              <type>unsigned int</type>
+              <name>source</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+            <gpu:variable>                    <!-- edges require a destination variable of an integer type -->
+              <type>unsigned int</type>
+              <name>destination</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+          </variables>
+          <gpu:bufferSize>256</gpu:bufferSize>
+        </gpu:edge>
+      </gpu:staticGraph>
+    </gpu:graphs>
 
 Defining an X-Machine Agent
 ===========================
@@ -152,7 +222,8 @@ That is the maximum number of x-machine agent instances of the format described 
 There is no performance disadvantage to using a large ``bufferSize`` however it is the user's responsibility to ensure that the GPU contains enough memory to support large populations of agents.
 It is recommended that the bufferSize always be a power of two number (i.e. ``1024``, ``2048``, ``4096``, ``16384``, etc) as it will most likely be rounded to one during simulation.
 For discrete agents the bufferSize is strictly limited to only power of 2 numbers which have squarely divisible dimensions (i.e. the square of the bufferSize must be a whole number).
-If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit.
+If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit. Care must be taken when defining the value of bufferSize. Any datatype which would exceed the stack limit of 2GB (calculated as bufferSize*sizeof(agent variable data type) will fail to build under windows. E.g. This limits the bufferSize for 4byte variables (int, float, etc) to 62.5 million.
+
 Each expandable aspect of an XMML agent representation in the below example is discussed within this section with the exception of agent functions, which due to their dependence of the definition of messages, are discussed later in :ref:`Defining an Agent function`.
 
 .. code-block:: xml
@@ -180,7 +251,7 @@ Agent Memory
 
 
 Agent memory consists of a number of variables (at least one) which are use to hold information.
-An agent ``variable`` must have a unique ``name`` and may be of ``type`` ``int``, ``float`` or ``double`` (CUDA compute capability 1.3 or beyond).
+An agent ``variable`` must have a unique ``name`` and may be of ``type`` ``int``, ``float`` or ``double`` (CUDA compute capability 1.3 or beyond). Table [var_types]  summarizes the supported data types for the agent variables.
 Default values are always ``0`` unless a ``defaultValue`` element is specified or if a value is specified within the XML input states file (which supersedes the default value).
 There are no specified limits on the maximum number of agent variables however the performance tips noted in :ref:`Performance Tips` should be taken into account.
 Agent memory can also be defined as static sized array. Below shows an example of agent memory containing four agent variables representing an agent identifier, two positional values (one with a default value) and a list of numbers.
@@ -239,7 +310,7 @@ Defining Messages
 Messages represent the information which is communicated between agents.
 An element ``messages`` contains a list of at least one ``message`` which defines a non optional ``name`` and an optional ``description`` of the message, a list of ``variables``, a ``partitioningType`` and a ``bufferSize``.
 The ``bufferSize`` element is used in the same way that a ``bufferSize`` is used to define an X-Machine agent, i.e. the maximum number of this message type which may exist within the simulation at one time.
-The ``partitioningType`` may be one of three currently defined message partition schemes, i.e. non partitioned (``partitioningNone``), discrete 2D space partitioning (``partitioningDiscrete``) or 2D/3D spatially partitioned space (``partitioningSpatial``).
+The ``partitioningType`` may be one of four currently defined message partition schemes, i.e. non partitioned (``partitioningNone``), discrete 2D space partitioning (``partitioningDiscrete``), 2D/3D spatially partitioned space (``partitioningSpatial``) or graph edge partitioned (``partitioningGraphEdge``).
 Message partition schemes are used to ensure that the most optimal cycling of messages occurs within agent functions. The use of the partitioning techniques is described within this section, as are message variables.
 
 .. code-block:: xml
@@ -261,8 +332,8 @@ Message Variables
 -----------------
 
 The message ``variables`` element consists of a number of ``variable`` elements (at least one) which are use to hold communication information.
-A ``variable`` must have a unique ``name`` and may be of ``type`` ``{int``, ``float`` or ``double`` (CUDA Compute capability 2.0 or beyond).
-Unlike with agent variables, message variables support only scalar single memory values (i.e. no static or dynamic arrays).
+A ``variable`` must have a unique ``name`` and may be of ``type`` ``{int``, ``float`` or ``double`` (CUDA Compute capability 2.0 or beyond). 
+Unlike with agent variables, message variables support only scalar single memory values (i.e. no static or dynamic arrays). Table [var_types]  summarizes the supported data types for the message variables.
 There are no specified limits on the maximum number of message variables however increased message size will have a negative effect on performance in all partitioning cases (and in particular when non partitioned messages are used).
 The format of message variable specification shown below is identical to that of agent memory.
 The only exception is the requirement of certain variable names which are required by certain partitioning types.
@@ -310,8 +381,10 @@ Discrete Partitioned Messages
 Discrete partitioned messages are messages which may only originate from non mobile discrete agents (cellular automaton).
 A discrete partitioning message scheme requires the specification of a radius which indicates the range (in in 2D discrete space) which a message iteration will extend to.
 A radius value of ``0`` indicates that only a single message will be returned from message iteration.
-A value of greater than ``0`` indicates that message iteration will loop through radius directions in both the ``x`` and a ``y`` dimension (e.g.
-a range of ``1`` will iterate ``3x3=9`` messages, a range of ``2`` will iterate ``5x5=25``).
+A value of greater than ``0`` indicates that message iteration will loop through radius directions in both the ``x`` and a ``y`` dimension, but ignore the centre cell (e.g.
+a range of ``1`` will iterate ``(3x3)-1=8`` messages, a range of ``2`` will iterate ``(5x5)-1=24``).
+When iterating messages, the environment is wrapped in the ``x`` and ``y`` axis to form a torus.
+This means that the radius value used should be less than or equal to ``floor((sqrt(bufferSize) - 1) / 2)`` to avoid the same message being read multiple times.
 In addition to this the agent memory is expected to contain an ``x`` and ``y`` variable of ``type`` ``int``.
 As with discrete agents it is important to ensure that messages using discrete partitioning use only supported buffer sizes (power of 2 and squarely divisible). The width and height of the discrete message space is then defined as the square of the ``bufferSize`` value. 
 
@@ -321,6 +394,9 @@ As with discrete agents it is important to ensure that messages using discrete p
     <gpu:partitioningDiscrete>
         <gpu:radius>1</gpu:radius>
     </gpu:partitioningDiscrete>
+
+.. warning::
+   Outputting messages with ``x`` or ``y`` values outside of the environment bounds (greater than the square of the ``bufferSize``) is undefined and may result in unexpected behaviour. 
 
 Spatially Partitioned Messages
 ------------------------------
@@ -335,8 +411,11 @@ The space within the defined bounds is partitioned according to the radius with 
 .. math::
     P = ceiling((max\_bound - min\_bound) / radius)
 
-The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space.
+The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space. The value of ``P`` must not exceed 62.5 million due to limitations on the size of stack memory.
+The value of ``P`` must be at least 3 in both the ``x`` and ``y`` axis, and at least ``1`` in the ``z`` axis, else a compilation error will occur. If the desired configuration does not meet these critera consider using Non Partitioned Messages.
 Spatially partitioned message iteration can then iterate a varying number of messages from a fixed number of adjacent partitions in partition space to ensure each message within the specified radius has been considered.
+When iterating messages, the environment is wrapped in the ``x`` and ``y`` axis to form a torus. No wrapping occurs in the ``z`` axis. 
+
 The following example defines a spatial partition in three dimensions.
 For continuously spaced agents in 2D space ``P`` in the x z dimension should be equal to ``1`` and therefore a ``zmin`` of ``0`` would require a ``zmax`` value equal to ``radius`` (even in this case a message variable with name ``z`` is still required).
 
@@ -353,9 +432,50 @@ For continuously spaced agents in 2D space ``P`` in the x z dimension should be 
         <gpu:zmax>10</gpu:zmax>
     </gpu:partitioningSpatial>  
 
-.. \subsection{Graph-Based Communication Messages}
-.. \label{ssec:graph-comm-xml}
-.. \textbf{@todo}
+.. warning::
+   Outputting messages with ``x``, ``y`` or ``z`` values outside of the environment bounds is undefined and may result in unexpected behaviour. Currently messages are clamped to the final partition in the relevant dimension, however this should not be relied upon.
+
+
+Graph Edge Partitioned Messaging
+--------------------------------
+
+Graph Edge Partitioned messages are messages which originate from continuous spaces agents in an environment where communication is restricted to the structure of a graph. I.e agents which traverse along a network such as a road network. A graph edge partitioned message scheme requires the specification of a graph and the corresponding message variable which refers to the graph edge id.
+
+Messages are sorted by the ``messageEdgeId`` variable, which enables high performance access to messages on the edge. Using the graph data structure it is then possible to traverse the graph accessing messages from multiple edges.
+
+The following example defines a graph edge partitioning scheme corresponding to a ``staticGraph`` named ``graph`` where the message variable ``edge_id`` contains the edge from which the message corresponds.
+
+.. code-block:: xml
+   :linenos:
+
+   <gpu:partitioningGraphEdge>
+     <gpu:environmentGraph>graph</gpu:environmentGraph>
+     <gpu:messageEdgeID>edge_id</gpu:messageEdgeID>
+   </gpu:partitioningGraphEdge>
+
+.. warning::
+   Outputting messages with ``messageEdgeID`` values greater than the ``bufferSize`` of the corresponding ``<gpu:environmentGraph>`` is undefined and may result in unexpected behaviour.
+
+
+Message Partitioning and Agent Type Compatibility
+-------------------------------------------------
+
+Different types of agent (``CONTINUOUS`` & ``DISCRETE_2D``) agents can output different types of message, and may need to use templated functions to read messages of certain types. The following table shows which message types may be output, and when templated accessor functions are required.
+
+
++-----------------------+----------------------------------+-----------------------------+
+| Message Type          | Output                           | Input Template Argument     |
+|                       +----------------+-----------------+-------------+---------------+
+|                       | CONTINUOUS     | DISCRETE_2D     | CONTINOUS   | DISCRETE_2D   |
++=======================+================+=================+=============+===============+
+| partitioningNone      + **Yes**        | No              |             |               |
++-----------------------+----------------+-----------------+-------------+---------------+
+| partitioningDiscrete  + No             | **Yes**         | <CONTINOUS> | <DISCRETE_2D> |
++-----------------------+----------------+-----------------+-------------+---------------+
+| partitioningSpatial   + **Yes**        | No              |             |               |
++-----------------------+----------------+-----------------+-------------+---------------+
+| partitioningGraphEdge + **Yes**        | No              |             |               |
++-----------------------+----------------+-----------------+-------------+---------------+
 
 
 Defining an Agent function
@@ -465,7 +585,7 @@ Function Conditions
 
 An agent function ``condition`` indicates that the agent function should only be applied to agents which meet the defined condition (and in the correct state specified by ``currentState``).
 Each function condition consists of three parts a left hand side statement (``lhs``), an ``operator`` and a right hand side statement (``rhs``).
-Both the \mintinline[fontsize=\small]{text}{lhs} and \mintinline[fontsize=\small]{text}{rhs} elements may contain either a agentVariable a value or a recursive condition element.
+Both the ``lhs`` and ``rhs`` elements may contain either a ``agentVariable`` a value or a recursive condition element.
 An ``agentVariable`` element must refer to a agent variable defined within the agents list of variable names (i.e. the XPath equivalent of 
 ``xagent/memory/variable/name``).
 A ``value`` element may refer to any numeric value or constant definition (defined within the agent function scripts).
@@ -507,6 +627,9 @@ Care must be taken when using angled brackets which in standard form will cause 
 Rather than the left hand bracket (less than) the correct xml syntax of 
 ``&lt;`` should be used. Likewise the right hand bracket (greater than) should be replaced with 
 ``&gt;``.
+
+.. note ::
+    *Discrete* agents **cannot** have agent functions with conditions.
 
 
 Global Function Conditions
@@ -645,3 +768,144 @@ Could have a value specified within an initial XML agents file as follows;
     ...
 
 *Note: that the value obtained from the initial XML agents file will supersede any default value.*
+
+
+Host-based Agent Creation
+-------------------------
+
+As of FLAME GPU 1.5.0 it is possible to create agents on the host using Init or Step functions, rather than loading from XML. This is described by :ref:`Agent Creation from the Host`.
+
+
+Loading StaticGraph Data from Disk
+==================================
+
+Static Graph data is loaded from disk during the initialisation phase of a FLAME GPU simulation. 
+The data can be loaded from either XML or JSON formats. 
+If a static graph is defined, the file **must** be present and valid for the simulation to continue. 
+
+
+The following examples show the data for a graph containing 2 vertices with variables ``id``, ``x`` & ``y`` and 1 edge with variables ``id``, ``source``, ``destination`` & ``length``. 
+
+
+.. code-block:: xml
+   :linenos:
+   :caption: graph.xml
+
+   <graph>
+       <vertices>
+           <vertex>
+               <id>0</id>
+               <x>0.0</x>
+               <y>0.0</y>
+           </vertex>
+           <vertex>
+               <id>1</id>
+               <x>0.0</x>
+               <y>10.0</y>
+           </vertex>
+       </vertices>
+       <edges>
+           <edge>
+               <id>0</id>
+               <source>0</source>
+               <destination>1</destination>
+               <length>10.0</length>
+           </edge>
+       </edges>
+   <graph>
+
+
+.. code-block:: json
+   :linenos:
+   :caption: graph.json
+
+   {
+       "vertices": [
+           {
+               "id": 0,
+               "x": 0.0,
+               "y": 0.0
+           },
+           {
+               "id": 1,
+               "x": 0.0,
+               "y": 10.0
+           }
+       ],
+       "edges": [
+           {
+               "id": 0,
+               "source": 0,
+               "destination": 1,
+               "length": 10.0
+           }
+       ]
+   }
+
+
+
+FLAME GPU variable types
+========================
+
+FLAME GPU supports the commonly used scalar types and a set of vector types (currently provided by GLM), as defined in the following tables.
+
++--------------------------+-----------------------------------------------------------------------+
+| Scalar Type              | Description                                                           |
++==========================+=======================================================================+
+| bool                     | Conditional type with values of true or false                         |
++--------------------------+-----------------------------------------------------------------------+
+| (unsgined) char          | Integer type using (typically)  8 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| (unsgined) short         | Integer type using (typically) 16 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| (unsgined) int           | Integer type using (typically) 32 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| (unsigned) long long int | Integer type using (typically) 64 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| float                    | Signed single precision floating point type using (typically) 32 bits |
++--------------------------+-----------------------------------------------------------------------+
+| double                   | Signed double precision floating point type using (typically) 64 bits |
++--------------------------+-----------------------------------------------------------------------+
+
+
++-------------+--------------+----------+
+| Vector Type | Scalar Type  | Elements |
++=============+==============+==========+
+| ivec2       | int          | 2        |
++-------------+--------------+----------+
+| ivec3       | int          | 3        |
++-------------+--------------+----------+
+| ivec4       | int          | 4        |
++-------------+--------------+----------+
+| uvec2       | unsigned int | 2        |
++-------------+--------------+----------+
+| uvec3       | unsigned int | 3        |
++-------------+--------------+----------+
+| uvec4       | unsigned int | 4        |
++-------------+--------------+----------+
+| fvec2       | float        | 2        |
++-------------+--------------+----------+
+| fvec3       | float        | 3        |
++-------------+--------------+----------+
+| fvec4       | float        | 4        |
++-------------+--------------+----------+
+| dvec2       | double       | 2        |
++-------------+--------------+----------+
+| dvec3       | double       | 3        |
++-------------+--------------+----------+
+| dvec4       | double       | 4        |
++-------------+--------------+----------+
+
+In addition FLAME GPU supports array variables, for agent member variables, environment constants and as member variables of staticGraphs. Array variables are **not** supported for message variables.
+
++-----------------------+-----------------------+-----------------+
+|                       | Scalar & Vector Types | Array Variables |
++=======================+=======================+=================+
+| Agent Variables       | Yes                   | Yes             |
++-----------------------+-----------------------+-----------------+
+| Environment Constants | Yes                   | Yes             |
++-----------------------+-----------------------+-----------------+
+| Graph Variables       | Yes                   | Yes             |
++-----------------------+-----------------------+-----------------+
+| Message Variables     | Yes                   | **No**          |
++-----------------------+-----------------------+-----------------+

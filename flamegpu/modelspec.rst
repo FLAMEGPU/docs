@@ -847,51 +847,65 @@ The following examples show the data for a graph containing 2 vertices with vari
 FLAME GPU variable types
 ========================
 
-FLAME GPU framework support the following scalar and vector data types, grouped as follows:
+FLAME GPU supports the commonly used scalar types and a set of vector types (currently provided by GLM), as defined in the following tables.
+
++--------------------------+-----------------------------------------------------------------------+
+| Scalar Type              | Description                                                           |
++==========================+=======================================================================+
+| bool                     | Conditional type with values of true or false                         |
++--------------------------+-----------------------------------------------------------------------+
+| (unsgined) char          | Integer type using (typically)  8 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| (unsgined) short         | Integer type using (typically) 16 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| (unsgined) int           | Integer type using (typically) 32 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| (unsigned) long long int | Integer type using (typically) 64 bits. Can be signed or unsigned     |
++--------------------------+-----------------------------------------------------------------------+
+| float                    | Signed single precision floating point type using (typically) 32 bits |
++--------------------------+-----------------------------------------------------------------------+
+| double                   | Signed double precision floating point type using (typically) 64 bits |
++--------------------------+-----------------------------------------------------------------------+
 
 
-=========== ==========================================================
-Type        Meaning 
-=========== ==========================================================
-bool        A conditional type, can have one of the two values of true or false
-short       Short int is larger or equal to the size of type char, and shorter or equal
-int         It is larger than or equal to the size of type short int, and shorter than or equal to the size of type long. It can be declared as signed int or unsigned int.
-long        Larger than or equal to the size of type int. It can be declared as unsigned and signed. 
-long long   Larger than an unsigned long. Can be declared as signed long or unsigned long.
-float       A single floating-point scalar
-double      A single double-precision floating point scalar. It is larger than or equal to type float, but shorter than or equal to the size of type long double.
-long double It is larger than or equal to type double
-fvec2       a two-component floating-point vector
-fvec3       a three-component floating-point vector
-fvec4       a four-component floating-point vector
-dvec2       a two-component double-precision floating-point vector
-dvec3       a three-component double-precision floating-point vector
-dvec4       a four-component double-precision floating-point vector
-ivec2       a two-component signed integer vector
-ivec3       a three-component signed integer vector
-ivec4       a four-component signed integer vector
-uvec2       a two-component unsigned integer vector
-uvec3       a three-component unsigned integer vector
-uvec4       a four-component unsigned integer vector
-=========== ==========================================================
++-------------+--------------+----------+
+| Vector Type | Scalar Type  | Elements |
++=============+==============+==========+
+| ivec2       | int          | 2        |
++-------------+--------------+----------+
+| ivec3       | int          | 3        |
++-------------+--------------+----------+
+| ivec4       | int          | 4        |
++-------------+--------------+----------+
+| uvec2       | unsigned int | 2        |
++-------------+--------------+----------+
+| uvec3       | unsigned int | 3        |
++-------------+--------------+----------+
+| uvec4       | unsigned int | 4        |
++-------------+--------------+----------+
+| fvec2       | float        | 2        |
++-------------+--------------+----------+
+| fvec3       | float        | 3        |
++-------------+--------------+----------+
+| fvec4       | float        | 4        |
++-------------+--------------+----------+
+| dvec2       | double       | 2        |
++-------------+--------------+----------+
+| dvec3       | double       | 3        |
++-------------+--------------+----------+
+| dvec4       | double       | 4        |
++-------------+--------------+----------+
 
+In addition FLAME GPU supports array variables, for agent member variables, environment constants and as member variables of staticGraphs. Array variables are **not** supported for message variables.
 
-Within FLAME GPU, agent and environment variables can be of any above data type (vectors [2]_ or scalars [1]_). However, vector types are not supported in message variables.
-
-Here you have a quick reference to the complete set of supported data types:
-.. [var_types]
-
-==============  ================  ====================
-Agent Variable  Message Variable  Environment Variable 
---------------  ----------------  --------------------
-Scalar,Vector       Scalar           Scalar,Vector 
-==============  ================  ==================== 
-
-
-.. [1] Scalars: bool, short, int, float, double, long, long long
-.. [2] Vectors: fvec2, fvec3, fvec4, dvec2, dvec3, dvec4, ivec2, ivec3, ivec4, uvec2, uvec3, uvec4
-
-
-
-
-
++-----------------------+-----------------------+-----------------+
+|                       | Scalar & Vector Types | Array Variables |
++=======================+=======================+=================+
+| Agent Variables       | Yes                   | Yes             |
++-----------------------+-----------------------+-----------------+
+| Environment Constants | Yes                   | Yes             |
++-----------------------+-----------------------+-----------------+
+| Graph Variables       | Yes                   | Yes             |
++-----------------------+-----------------------+-----------------+
+| Message Variables     | Yes                   | **No**          |
++-----------------------+-----------------------+-----------------+

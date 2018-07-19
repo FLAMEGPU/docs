@@ -269,6 +269,42 @@ The example below shows an agent function (``input_messages``) of a discrete age
         return 0;
     }
 
+Graph Edge Partitioned Message Iteration
+----------------------------------------
+
+For graph edge partitioned messages the dynamically generated message API functions rely on the use of a message boundary structure. The structure holds important information which determines which messages belong to each edge of the graph data structure. 
+ As with other message types the first argument is the input message list. 
+ The second argument is the message boundary structure, and the third argument is the id of the edge for which messages should be loaded (usually the edge where the agent is located).
+ The ``get_next`` message API function differs only from the non partitioned example in that the message boundary structure is passed as an additional parameter.
+
+ The example below shows the use of graph edge partitioned messaging to access messages from the edge as the agent currently resides, counting the number of agents. 
+
+.. code-block:: c
+   :linenos:
+
+    __FLAME_GPU_FUNC__ int input_messages(xmachine_memory_Agent* agent, xmachine_message_location_list* location_messages, xmachine_message_location_bounds* message_bounds){
+        // Initialise a variable
+        unsigned int count = 0;
+
+        // Get the first message from the message list for the target edge
+        xmachine_message_location* current_message = get_first_location_message(location_messages, message_bounds, agent->edge_id);
+
+        // Loop through the messages
+        while(current_message){
+            // No need to check that the current_message->edge_id matches, as this is guaranteed by the partitioning scheme
+            // Increment the counter
+            count++;
+
+            // Get the next message from the message list.
+            current_message = get_next_location_message(current_message, location_messages, message_bounds);
+        }
+
+        // Store the count
+        agent->count = count;
+
+        return 0;
+    }
+
 
 Message Type Macro Definition
 -----------------------------
@@ -280,32 +316,33 @@ I.e.
 .. code-block:: c
    :linenos:
   
-    #define xmachine_message_message0_partitioningNone
-    #define xmachine_message_message1_partitioningDiscrete
-    #define xmachine_message_message2_partitioningSpatial
+    #define xmachine_message_MESSAGE_partitioningNone
+    #define xmachine_message_MESSAGE_partitioningDiscrete
+    #define xmachine_message_MESSAGE_partitioningSpatial
+    #define xmachine_message_MESSAGE_partitioningGraphEdge
 
 These macros can then be used to write a single ``functions.c`` file which can be used with different partitioning shchemes in the ``XMLModelFile.XML``.
 
 .. code-block:: c
    :linenos:
 
-    #if defined(xmachine_message_message0_partitioningNone)
-        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_message0_list* message0_messages){
-    #elif defined(xmachine_message_message0_partitioningSpatial)
-        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_message0_list* message0_messages, xmachine_message_message0_PBM* partition_matrix){
+    #if defined(xmachine_message_MESSAGE_partitioningNone)
+        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_MESSAGE_list* MESSAGE_messages){
+    #elif defined(xmachine_message_MESSAGE_partitioningSpatial)
+        __FLAME_GPU_FUNC__ int readMessages(xmachine_memory_agent* agent, xmachine_message_MESSAGE_list* MESSAGE_messages, xmachine_message_MESSAGE_PBM* partition_matrix){
     #endif
         // ...
-        #if defined(xmachine_message_message0_partitioningNone)
-            xmachine_message_message0* current_message = get_first_message0_message(message0_messages);
-        #elif defined(xmachine_message_message0_partitioningSpatial)
-            xmachine_message_message0* current_message = get_first_message0_message(message0_messages, partition_matrix, agent->x, agent->y, agent->z);
+        #if defined(xmachine_message_MESSAGE_partitioningNone)
+            xmachine_message_MESSAGE* current_message = get_first_MESSAGE_message(MESSAGE_messages);
+        #elif defined(xmachine_message_MESSAGE_partitioningSpatial)
+            xmachine_message_MESSAGE* current_message = get_first_MESSAGE_message(MESSAGE_messages, partition_matrix, agent->x, agent->y, agent->z);
         #endif
         while (current_message) {
             // ...
-            #if defined(xmachine_message_message0_partitioningNone)
-                current_message = get_next_message0_message(current_message, message0_messages);
-            #elif defined(xmachine_message_message0_partitioningSpatial)
-                current_message = get_next_message0_message(current_message, message0_messages, partition_matrix);
+            #if defined(xmachine_message_MESSAGE_partitioningNone)
+                current_message = get_next_MESSAGE_message(current_message, MESSAGE_messages);
+            #elif defined(xmachine_message_MESSAGE_partitioningSpatial)
+                current_message = get_next_MESSAGE_message(current_message, MESSAGE_messages, partition_matrix);
             #endif
         }
         // ...
@@ -538,6 +575,42 @@ The function requires a pointer to a host variable (or array in the case of an e
 This function returns a host pointer to the variable (or array in the case of an environment variable array).
 
 The functions for getting and setting constants are all declared using the `extern` keyword which allows them to be linked by externally compiled code such as a custom visualisation or custom simulation loop.
+
+
+Getting Static Graph Data 
+-------------------------
+
+To access data from a staticGraph defined in environment tag of the XMLModelFile, several functions are defined, which can be called from host or device functions.
+The following examples are for a graph named ``GRAPH``.
+
+The following 4 methods are always defined, for any graph.
+
+.. code-block:: c
+   
+   // Get the number of vertices in the graph data structure, less than or equal to the bufferSize
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_count();
+
+   // Get the number of edges in the graph data structure, less than or equal to the bufferSize
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_edge_count();
+
+   // Get the index of the first edge which leaves a given vertex (index)
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_first_edge_index(unsigned int index);
+
+   // Get the number of edges which leaves a given vertex (index)
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_num_edges(unsigned int index);
+
+
+In addition, for each member variable defined for each vertex, and each edge a function is defined, which returns the variable of the appropriate type. If the variable is an array an additional parameter is provided for the element of the array.
+
+
+.. code-block:: c
+   
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_VARIABLE(unsigned int vertexIndex);
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_vertex_ARRAY(unsigned int vertexIndex, unsigned int element);
+
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_edge_VARIABLE(unsigned int edgeIndex);
+   __FLAME_GPU_HOST_FUNC__ __FLAME_GPU_FUNC__ unsigned int get_staticGraph_GRAPH_edge_ARRAY(unsigned int edgeIndex, unsigned int element);
+
 
 
 Sorting agents

@@ -32,17 +32,18 @@ The Environment
 ===============
 
 The environment element is used to hold global information which relates to the simulation.
-This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`) and an optional number of initialisation, step and exit functions.
+This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`), an optional number of initialisation, step and exit functions and an optional number of graph data structures.
 
 .. code-block:: xml
    :linenos:
 
     <gpu:environment>
         <gpu:constants>...</gpu:constants>            <!-- optional -->
-        <gpu:functionFiles>...</gpu:functionFiles>    <!-- not optional -->
+        <gpu:functionFiles>...</gpu:functionFiles>    <!-- required -->
         <gpu:initFunctions>...</gpu:initFunctions>    <!-- optional -->
         <gpu:stepFunctions>...</gpu:stepFunctions>    <!-- optional -->
-        <gpu:endFunctions>...</gpu:endFunctions>      <!-- optional -->
+        <gpu:exitFunctions>...</gpu:exitFunctions>    <!-- optional -->
+        <gpu:graphs>...</gpu:graphs>                  <!-- optional -->
     </gpu:environment>
 
 
@@ -139,6 +140,74 @@ Exit functions are again like the other function types defined above, requiring 
         </gpu:exitFunction>
     </gpu:exitFunctions>
 
+
+Graph Data Structures
+---------------------
+
+Some agent based models may contain environmental data structures as a graph. To ensure high performance access of this data, and enable communication restricted to a graph based data structure FLAME GPU 1.5.0 introduces a list of graphs to the environment.
+
+Graphs are implemented using the Compressed Spares Row (CSR) data, enable high performance read access. Currently it is not possible to pragmatically modify (or update) the graph data structure at runtime.
+
+The following example shows the definition of a static graph with the name ``graph``, with a text description.
+The ``<gpu:loadFromFile>`` tag defines that the graph is to be loaded from a ``json`` file stored on disk, called ``network.json``. This path is relative to the initial states file. Alternatively the graph can be loaded from an XML format via ``<gpu:xml>relative/path/to/file.xml</gpu:xml>``.
+
+The ``<gpu:vertex>`` and ``<gpu:edge>`` tags define the list of ``<variables>`` which the data structure contains, and the maximum number of each type of element via the ``<gpu:bufferSize>`` tag. 
+Vertices require a variable called `id`, with an integer based type, such as ``int``, ``unsigned int``, ``unsigned long long int`` etc. 
+Edges require an ``id`` variable of an integer type, a ``source`` variable of an integer type referring to a vertex id, and a ``destination`` variable of an integer type referring to a vertex id.
+
+
+.. code-block:: xml
+   :linenos:
+
+    <gpu:graphs>
+      <gpu:staticGraph>
+        <gpu:name>graph</gpu:name>
+        <gpu:description>A graph containing some static data</gpu:description> <!-- Optional -->
+        <gpu:loadFromFile>
+            <gpu:json>graph.json</gpu:json> <!-- or <gpu:xml>graph.xml</gpu:xml> -->
+        </gpu:loadFromFile>
+        <gpu:vertex>
+          <variables>
+            <gpu:variable>                    <!-- vertices require an id variable of an integer type -->
+              <type>unsigned int</type>
+              <name>id</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+            <gpu:variable>
+              <type>float</type>
+              <name>x</name>
+              <defaultValue>1.0f</defaultValue>
+            </gpu:variable>
+            <gpu:variable>
+              <type>float</type>
+              <name>y</name>
+              <defaultValue>1.0f</defaultValue>
+            </gpu:variable>
+          </variables>
+          <gpu:bufferSize>1024</gpu:bufferSize>
+        </gpu:vertex>
+        <gpu:edge>
+          <variables>
+            <gpu:variable>                    <!-- edges require an id variable of an integer type -->
+              <type>unsigned int</type>
+              <name>id</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+            <gpu:variable>                    <!-- edges require a source variable of an integer type -->
+              <type>unsigned int</type>
+              <name>source</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+            <gpu:variable>                    <!-- edges require a destination variable of an integer type -->
+              <type>unsigned int</type>
+              <name>destination</name>
+              <defaultValue>0</defaultValue>
+            </gpu:variable>
+          </variables>
+          <gpu:bufferSize>256</gpu:bufferSize>
+        </gpu:edge>
+      </gpu:staticGraph>
+    </gpu:graphs>
 
 Defining an X-Machine Agent
 ===========================
@@ -241,7 +310,7 @@ Defining Messages
 Messages represent the information which is communicated between agents.
 An element ``messages`` contains a list of at least one ``message`` which defines a non optional ``name`` and an optional ``description`` of the message, a list of ``variables``, a ``partitioningType`` and a ``bufferSize``.
 The ``bufferSize`` element is used in the same way that a ``bufferSize`` is used to define an X-Machine agent, i.e. the maximum number of this message type which may exist within the simulation at one time.
-The ``partitioningType`` may be one of three currently defined message partition schemes, i.e. non partitioned (``partitioningNone``), discrete 2D space partitioning (``partitioningDiscrete``) or 2D/3D spatially partitioned space (``partitioningSpatial``).
+The ``partitioningType`` may be one of four currently defined message partition schemes, i.e. non partitioned (``partitioningNone``), discrete 2D space partitioning (``partitioningDiscrete``), 2D/3D spatially partitioned space (``partitioningSpatial``) or graph edge partitioned (``partitioningGraphEdge``).
 Message partition schemes are used to ensure that the most optimal cycling of messages occurs within agent functions. The use of the partitioning techniques is described within this section, as are message variables.
 
 .. code-block:: xml
@@ -365,6 +434,27 @@ For continuously spaced agents in 2D space ``P`` in the x z dimension should be 
 
 .. warning::
    Outputting messages with ``x``, ``y`` or ``z`` values outside of the environment bounds is undefined and may result in unexpected behaviour. Currently messages are clamped to the final partition in the relevant dimension, however this should not be relied upon.
+
+
+Graph Edge Partitioned Messaging
+--------------------------------
+
+Graph Edge Partitioned messages are messages which originate from continuous spaces agents in an environment where communication is restricted to the structure of a graph. I.e agents which traverse along a network such as a road network. A graph edge partitioned message scheme requires the specification of a graph and the corresponding message variable which refers to the graph edge id.
+
+Messages are sorted by the ``messageEdgeId`` variable, which enables high performance access to messages on the edge. Using the graph data structure it is then possible to traverse the graph accessing messages from multiple edges.
+
+The following example defines a graph edge partitioning scheme corresponding to a ``staticGraph`` named ``graph`` where the message variable ``edge_id`` contains the edge from which the message corresponds.
+
+.. code-block:: xml
+   :linenos:
+
+   <gpu:partitioningGraphEdge>
+     <gpu:environmentGraph>graph</gpu:environmentGraph>
+     <gpu:messageEdgeID>edge_id</gpu:messageEdgeID>
+   </gpu:partitioningGraphEdge>
+
+.. warning::
+   Outputting messages with ``messageEdgeID`` values greater than the ``bufferSize`` of the corresponding ``<gpu:environmentGraph>`` is undefined and may result in unexpected behaviour.
 
 
 Message Partitioning and Agent Type Compatibility
@@ -684,6 +774,74 @@ Host-based Agent Creation
 -------------------------
 
 As of FLAME GPU 1.5.0 it is possible to create agents on the host using Init or Step functions, rather than loading from XML. This is described by :ref:`Agent Creation from the Host`.
+
+
+Loading StaticGraph Data from Disk
+==================================
+
+Static Graph data is loaded from disk during the initialisation phase of a FLAME GPU simulation. 
+The data can be loaded from either XML or JSON formats. 
+If a static graph is defined, the file **must** be present and valid for the simulation to continue. 
+
+
+The following examples show the data for a graph containing 2 vertices with variables ``id``, ``x`` & ``y`` and 1 edge with variables ``id``, ``source``, ``destination`` & ``length``. 
+
+
+.. code-block:: xml
+   :linenos:
+   :caption: graph.xml
+
+   <graph>
+       <vertices>
+           <vertex>
+               <id>0</id>
+               <x>0.0</x>
+               <y>0.0</y>
+           </vertex>
+           <vertex>
+               <id>1</id>
+               <x>0.0</x>
+               <y>10.0</y>
+           </vertex>
+       </vertices>
+       <edges>
+           <edge>
+               <id>0</id>
+               <source>0</source>
+               <destination>1</destination>
+               <length>10.0</length>
+           </edge>
+       </edges>
+   <graph>
+
+
+.. code-block:: json
+   :linenos:
+   :caption: graph.json
+
+   {
+       "vertices": [
+           {
+               "id": 0,
+               "x": 0.0,
+               "y": 0.0
+           },
+           {
+               "id": 1,
+               "x": 0.0,
+               "y": 10.0
+           }
+       ],
+       "edges": [
+           {
+               "id": 0,
+               "source": 0,
+               "destination": 1,
+               "length": 10.0
+           }
+       ]
+   }
+
 
 
 FLAME GPU variable types

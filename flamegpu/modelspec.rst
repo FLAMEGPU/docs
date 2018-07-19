@@ -366,6 +366,26 @@ For continuously spaced agents in 2D space ``P`` in the x z dimension should be 
 .. warning::
    Outputting messages with ``x``, ``y`` or ``z`` values outside of the environment bounds is undefined and may result in unexpected behaviour. Currently messages are clamped to the final partition in the relevant dimension, however this should not be relied upon.
 
+
+Message Partitioning and Agent Type Compatibility
+-------------------------------------------------
+
+Different types of agent (``CONTINUOUS`` & ``DISCRETE_2D``) agents can output different types of message, and may need to use templated functions to read messages of certain types. The following table shows which message types may be output, and when templated accessor functions are required.
+
+
++----------------------+--------------------------+-----------------------------+
+| Message Type         | Output                   | Input Template Argument     |
+|                      +------------+-------------+-------------+---------------+
+|                      | CONTINUOUS | DISCRETE_2D | CONTINOUS   | DISCRETE_2D   |
++======================+============+=============+=============+===============+
+| partitioningNone     + Yes        | No          |             |               |
++----------------------+------------+-------------+-------------+---------------+
+| partitioningDiscrete + No         | Yes         | <CONTINOUS> | <DISCRETE_2D> |
++----------------------+------------+-------------+-------------+---------------+
+| partitioningSpatial  + Yes        | No          |             |               |
++----------------------+------------+-------------+-------------+---------------+
+
+
 Defining an Agent function
 ==========================
 

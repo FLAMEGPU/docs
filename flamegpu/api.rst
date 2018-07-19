@@ -508,6 +508,8 @@ If an exit function was defined in the XMMl model file (section :ref:`Exit Funct
         print_to_file();
     }
 
+
+Note that Exit functions are not executed by the default visualisation.
                                     
                                     
 
@@ -603,6 +605,22 @@ A dynamically generated *reduce* function is made for all agent variables for ea
     count_agentName_default_varName_variable(int count_value);
     min_agentName_default_varName_variable();
     max_agentName_default_varName_variable();
+
+
+Accessing Agent Data
+--------------------
+
+As of FLAME GPU 1.5.0 it is possible to directly access agent data from the device in Host functions (Init, Step and Exit). It is not possible to modify agent data from host functions.
+
+For each agent type (``AGENT``), state (``STATE``) and each agent variable (``VARIABLE``) a function is generated to access the variable, i.e. ``get_AGENT_STATE_variable_VARIABLE(index)``  which returns the value, by transparently copying the agent data from the host to the device, for the given variable from the relevant state list, which has potentially significant performance implications.
+
+For non-array agent variables, a single argument ``index`` refers to the position within the state list for the requested agent. Out of bounds accesses will return the default value for the agent variable.
+
+For array agent variables, two arguments are required, ``index`` and ``element``, where ``index`` is the agent position within the state list, and ``element`` is the 0 indexed element of the agent array. 
+I.e. ``get_AGENT_STATE_variable_ARRAY(0, 2)`` would return the 2nd element of the agent variable ``ARRAY`` for the 0th ``AGENT`` agent in the state ``STATE``.
+
+This enables the creation of custom agent output functions as step functions, if you do not require all agent data in output XML files. For instance, it can be used to create a CSV file. See the ``customOutputStepFunc`` step function for the ``HostAgentCreation`` example.
+
 
 
 Instrumentation for timing and population sizes

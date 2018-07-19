@@ -373,17 +373,19 @@ Message Partitioning and Agent Type Compatibility
 Different types of agent (``CONTINUOUS`` & ``DISCRETE_2D``) agents can output different types of message, and may need to use templated functions to read messages of certain types. The following table shows which message types may be output, and when templated accessor functions are required.
 
 
-+----------------------+--------------------------+-----------------------------+
-| Message Type         | Output                   | Input Template Argument     |
-|                      +------------+-------------+-------------+---------------+
-|                      | CONTINUOUS | DISCRETE_2D | CONTINOUS   | DISCRETE_2D   |
-+======================+============+=============+=============+===============+
-| partitioningNone     + Yes        | No          |             |               |
-+----------------------+------------+-------------+-------------+---------------+
-| partitioningDiscrete + No         | Yes         | <CONTINOUS> | <DISCRETE_2D> |
-+----------------------+------------+-------------+-------------+---------------+
-| partitioningSpatial  + Yes        | No          |             |               |
-+----------------------+------------+-------------+-------------+---------------+
++-----------------------+----------------------------------+-----------------------------+
+| Message Type          | Output                           | Input Template Argument     |
+|                       +----------------+-----------------+-------------+---------------+
+|                       | CONTINUOUS     | DISCRETE_2D     | CONTINOUS   | DISCRETE_2D   |
++=======================+================+=================+=============+===============+
+| partitioningNone      + **Yes**        | No              |             |               |
++-----------------------+----------------+-----------------+-------------+---------------+
+| partitioningDiscrete  + No             | **Yes**         | <CONTINOUS> | <DISCRETE_2D> |
++-----------------------+----------------+-----------------+-------------+---------------+
+| partitioningSpatial   + **Yes**        | No              |             |               |
++-----------------------+----------------+-----------------+-------------+---------------+
+| partitioningGraphEdge + **Yes**        | No              |             |               |
++-----------------------+----------------+-----------------+-------------+---------------+
 
 
 Defining an Agent function

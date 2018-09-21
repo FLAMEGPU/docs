@@ -613,7 +613,7 @@ In addition, for each member variable defined for each vertex, and each edge a f
 
 
 
-Sorting agents
+Sorting Agents
 --------------
 
 Each `CONTINUOUS` type agent can be sorted based on key value pairs which come from agent variables. This can be particularly useful for rendering. A function for sorting each agent (named `*agent*`) state list (in the below example the state is named `default`) is created with the folowing format.
@@ -666,7 +666,7 @@ The value `xmachine_memory_agent_MAX` is the buffer size of number of agents (se
         cudaDeviceSynchronize();
     }
 
-Analytics functions
+Analytics Functions
 -------------------
 
 A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count*, *min* and *max* functions will only be created for single-value (not array) variables. Count functions are limited to `int` type variables (including short, long and vector type variants), min and max functions are limited to non vector type variables (e.g. no dvec2 type of variables). Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.

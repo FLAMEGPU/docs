@@ -613,7 +613,7 @@ In addition, for each member variable defined for each vertex, and each edge a f
 
 
 
-Sorting agents
+Sorting Agents
 --------------
 
 Each `CONTINUOUS` type agent can be sorted based on key value pairs which come from agent variables. This can be particularly useful for rendering. A function for sorting each agent (named `*agent*`) state list (in the below example the state is named `default`) is created with the folowing format.
@@ -666,7 +666,7 @@ The value `xmachine_memory_agent_MAX` is the buffer size of number of agents (se
         cudaDeviceSynchronize();
     }
 
-Analytics functions
+Analytics Functions
 -------------------
 
 A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count*, *min* and *max* functions will only be created for single-value (not array) variables. Count functions are limited to `int` type variables (including short, long and vector type variants), min and max functions are limited to non vector type variables (e.g. no dvec2 type of variables). Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
@@ -694,6 +694,13 @@ I.e. ``get_AGENT_STATE_variable_ARRAY(0, 2)`` would return the 2nd element of th
 
 This enables the creation of custom agent output functions as step functions, if you do not require all agent data in output XML files. For instance, it can be used to create a CSV file. See the ``customOutputStepFunc`` step function for the ``HostAgentCreation`` example.
 
+
+Exiting the Simulation Early
+--------------------
+
+It is possible to exit the simulation earlier than specified (specified as command-line argument for console mode, or on exit for visualisation mode). This is done by calling ``set_exit_early()`` from CPU code in one of the runtime host functions. When called, the remainder of the simulation iteration is called, then exit functions are called and the simulation ends. To check the status of this, ``get_exit_early()`` can be called, which returns a boolean value of true if it set to exit after this simulation iteration. 
+
+An example of when this function is useful is if the simulation has a fixed end state. Start by running the simulation for many more iterations than necessary. Upon reaching the desired system state, which can be checked by :ref:`Accessing Agent Data`, call ``set_exit_early()`` to avoid simulating more iterations than necessary.
 
 
 Instrumentation for timing and population sizes

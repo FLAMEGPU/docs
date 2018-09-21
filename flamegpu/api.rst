@@ -695,6 +695,13 @@ I.e. ``get_AGENT_STATE_variable_ARRAY(0, 2)`` would return the 2nd element of th
 This enables the creation of custom agent output functions as step functions, if you do not require all agent data in output XML files. For instance, it can be used to create a CSV file. See the ``customOutputStepFunc`` step function for the ``HostAgentCreation`` example.
 
 
+Exiting the Simulation Early
+--------------------
+
+It is possible to exit the simulation earlier than specified (specified as command-line argument for console mode, or on exit for visualisation mode). This is done by calling ``set_exit_early()`` from CPU code in one of the runtime host functions. When called, the remainder of the simulation iteration is called, then exit functions are called and the simulation ends. To check the status of this, ``get_exit_early()`` can be called, which returns a boolean value of true if it set to exit after this simulation iteration. 
+
+An example of when this function is useful is if the simulation has a fixed end state. Start by running the simulation for many more iterations than necessary. Upon reaching the desired system state, which can be checked by :ref:`Accessing Agent Data`, call ``set_exit_early()`` to avoid simulating more iterations than necessary.
+
 
 Instrumentation for timing and population sizes
 ===============================================

@@ -448,6 +448,22 @@ For clarity the agent output API function prototype (normally found in ``header.
     }
 
 
+Generating new agent IDs
+------------------------
+
+For many models it can be useful to provide each agent a unique identifier, to track progress in output files, or to avoid reading self-messages during message list iteration. 
+FLAME GPU provides a mechanism to generate a new unique identifier, for host or device agent creation, if certain conditions are met.
+
+Agent types must have an agent variable named ``id``, of a signed or unsigned integer type (i.e, `int`, `unsigned int`, `unsigned long long int`, etc.) for the function to be generated. 
+
+
+For an agent type with name ``agentName`` with an ``unsigned int`` variable ``id`` ,  a new function ``unsigned int generate_agentName_id()`` will be generated. 
+When called from a host function (init, step, exit) or device agent function this will return the next available id from the sequence.
+
+The initial value for each agent type will either be `0` if no agents of that type are provided, or if the initial states file does contain agents, the maximum value plus one will be used. I.e. if ``0.xml`` contains agents with a maximum id value of ``128``, the first call to ``generate_agentName_id()`` will return `129`.
+
+It is possible to specify a custom starting point for the first id, using the generated ``set_initial_agentName_id(unsigned int first)`` function.
+
 Using Random Number Generation
 ==============================
 

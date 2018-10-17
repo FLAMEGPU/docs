@@ -696,7 +696,7 @@ This enables the creation of custom agent output functions as step functions, if
 
 
 Exiting the Simulation Early
---------------------
+----------------------------
 
 It is possible to exit the simulation earlier than specified (specified as command-line argument for console mode, or on exit for visualisation mode). This is done by calling ``set_exit_early()`` from CPU code in one of the runtime host functions. When called, the remainder of the simulation iteration is called, then exit functions are called and the simulation ends. To check the status of this, ``get_exit_early()`` can be called, which returns a boolean value of true if it set to exit after this simulation iteration. 
 

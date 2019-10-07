@@ -470,6 +470,7 @@ Using Random Number Generation
 Random number generation is provided via the ``rnd`` API function which uses template parameterisation to distinguish between either discrete (where a template parameter value of ``DISCRETE_2D`` should be used) or continuous (where a template parameter value of ``CONTINUOUS`` should be used) spaced agents.
 If a template parameter value is not specified then the simulation will assume a ``DISCRETE_2D`` value which will work in either case but is more computationally expensive.
 The API function has a single argument, a pointer to a ``RNG_rand48`` structure which contains random seeds and is passed to agent functions which specify a true value for the RNG element in the XMML function definition.
+The API function returns a pseudorandom `float` uniformly distributed within the range `[0.0,1.0)`.
 The example below shows a simple agent function (with no input or outputs) demonstrating the random number generation to determine if the agent should die.
 
 .. code-block:: c

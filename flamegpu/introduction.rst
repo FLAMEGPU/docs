@@ -53,7 +53,7 @@ the lifecycle of a single iteration. This allows a mechanism for agents
 to iteratively interact in a way which allows the emergent global group
 behaviour.
 
-The process of generating a FLAME GPU simulation is described by the 1.
+The process of generating a FLAME GPU simulation is described by :numref:`figure1-label`.
 The use of XML schemas forms a large part of the process where
 polymorphic-like extension allows a base schema specification to be
 extended with a number of GPU specific elements. Given an XMML model
@@ -68,6 +68,7 @@ which links with the *Agent Function Files* to generate a simulation
 program.
 
 .. figure:: /images/figure1.jpg
+   :name: figure1-label
    :alt: FLAME GPU Modelling and Simulation Processes
    :width: 100.0%
 

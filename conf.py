@@ -25,7 +25,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'FLAMEGPU'
-copyright = u'2017, FLAMEGPU'
+copyright = u'2019, FLAMEGPU'
 author = u'FLAMEGPU'
 
 # The version info for the project you're documenting, acts as replacement for

@@ -79,9 +79,9 @@ Purpose of This Document
 
 The purpose of this document is to describe the functional parts which
 make up a FLAME GPU simulation as well as providing guidance on how to
-use the FLAME GPU SDK. describes in detail the syntax and format of the
-XMML Model file. describes the syntax of use of agent function scripts
-and how to use the dynamic simulation API and describes how to generate
+use the FLAME GPU SDK. :ref:`modelspec` describes in detail the syntax and format of the
+XMML Model file. :ref:`api` describes the syntax of use of agent function scripts
+and how to use the dynamic simulation API, and :ref:`simulation` describes how to generate
 simulation code and run simulations from within the Visual Studio IDE.
 This document does not act as a review of background material relating
 to GPU agent modelling, nor does it provide details on FLAME GPUs

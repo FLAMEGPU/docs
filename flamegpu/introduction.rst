@@ -3,43 +3,43 @@
 Introduction
 ============
 
-Agent Based Modelling is a technique for the computational simulation of
+Agent-Based Modelling is a technique for the computational simulation of
 complex interacting systems through the specification of the behaviour
-of a number of autonomous individuals acting simultaneously. This is a
-bottom up approach, in contrast with the top down one of modelling the
+of autonomous individuals acting simultaneously. This is a
+bottom-up approach, in contrast with the top-down one of modelling the
 behaviour of the whole system through dynamic mathematical equations.
-The focus on individuals is considerably more computationally demanding,
-but provides a natural and flexible environment for studying systems
+The focus on individuals is considerably more computationally demanding
+yet provides a natural and flexible environment for studying systems
 demonstrating emergent behaviour. Despite the obvious parallelism,
 traditionally frameworks for ABM fail to exploit this and are often
 based on highly serialised algorithms for manipulating mobile discrete
 agents. Such an approach has serious implications, placing stringent
 limitations on both the scale of models and the speed at which they may
 be simulated. The purpose of the FLAME GPU framework is to address the
-limitations of previous agent modelling software by targeting the high
+limitations of previous agent modelling software by targeting the high-
 performance GPU architecture. The framework is designed with parallelism
 in mind and as such allows agent models to scale to massive sizes and
-ensures simulations run within reasonable time constrains. In addition
-to this visualisation is easily achievable as simulation data is held
+ensures simulations run within reasonable time constrains. 
+Furthermore, visualisation is easily achievable as simulation data is held
 entirely within GPU memory where it can be rendered directly.
 
-High Level Overview of FLAME GPU
+High-Level Overview of FLAME GPU
 --------------------------------
 
-Technically the FLAME GPU framework is not a simulator, it is instead a
-template based simulation environment that maps formal descriptions of
+Technically, the FLAME GPU framework is not a simulator, it is instead a
+template-based simulation environment that maps formal descriptions of
 agents into simulation code. The representation of an agent is based on
 the concept of a communicating X-Machine (which is an extension to the
 Finite State Machine which includes memory). Whilst the X-Machine has
-very formal definition X-Machine agents can be thought of a state
-machines which are able to communicate via messages which are stored in
-a globally accessible message lists. Agent functionality is exposed as a
+very formal definition X-Machine agents can be thought of as state
+machines able to communicate via messages stored in
+globally accessible message lists. Agent functionality is exposed as a
 set of state transition functions which move agents from one internal
 state to another. Upon changing state, agents update their internal
 memory through the influence of messages which may be either used as
 input (by iterating message lists) or as output (where information may
 be passed to the message lists for other agents to read). FLAME GPU uses
-agent function scripting for this purpose where script is defined in a
+agent function scripting for this purpose where the script is defined in a
 number of *Agent Function Files*. Simulation models are specified using
 a format called X-Machine Mark-up Language (*XMML*) which is XML syntax
 with Schemas governing the content. A typically XMML model file consists
@@ -51,20 +51,20 @@ agent functions (which constitutes a single simulation iteration).
 Throughout a simulation, agent data is persistent however message
 information (and in particular message lists) is persistent only over
 the lifecycle of a single iteration. This allows a mechanism for agents
-to iteratively interact in a way which allows emergent global group
+to iteratively interact in a way which allows the emergent global group
 behaviour.
 
 The process of generating a FLAME GPU simulation is described by :numref:`figure1-label`.
 The use of XML schemas forms a large part of the process where
-polymorphic like extension allows a base schema specification to be
+polymorphic-like extension allows a base schema specification to be
 extended with a number of GPU specific elements. Given an XMML model
-definition, template driven code generation is achieved through
+definition, template-driven code generation is achieved through
 Extensible Stylesheet Transformations (XSLT). XSLT is a flexible
 functional language based on XML (validated itself using a W3C specified
 Schema) and is suitable for the translation of XML documents into other
 document formats using a number of compliant processors (although the
 FLAME GPU SDK provides its own). Through the specification of a number
-of *XSLT Simulation Templates* a *Dynamic Simulation API* is generated
+of *XSLT Simulation Templates*, a *Dynamic Simulation API* is generated
 which links with the *Agent Function Files* to generate a simulation
 program.
 
@@ -85,9 +85,8 @@ XMML Model file. :ref:`api` describes the syntax of use of agent function script
 and how to use the dynamic simulation API, and :ref:`simulation` describes how to generate
 simulation code and run simulations from within the Visual Studio IDE.
 This document does not act as a review of background material relating
-to GPU agent modelling, nor does it provide details on FLAME GPUs
-implementation or descriptions of the FLAME GPU examples. For more in
-depth background material on agent based simulation on the GPU, the
+to GPU agent modelling, nor does it provide details on FLAME GPU's
+implementation or descriptions of the FLAME GPU examples. For more in-depth background material on agent-based simulation on the GPU, the
 reader is directed towards the following document;
 
     *Richmond Paul, Walker Dawn, Coakley Simon, Romano Daniela (2010),

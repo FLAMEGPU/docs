@@ -39,7 +39,8 @@ state to another. Upon changing state, agents update their internal
 memory through the influence of messages which may be either used as
 input (by iterating message lists) or as output (where information may
 be passed to the message lists for other agents to read). FLAME GPU uses
-agent function scripting for this purpose where the script is defined via an *Agent Function File*. Simulation models are specified using
+agent function scripting for this purpose where the script is defined in a
+number of *Agent Function Files*. Simulation models are specified using
 a format called X-Machine Mark-up Language (*XMML*) which is XML syntax
 with Schemas governing the content. A typically XMML model file consists
 of a definition of a number of X-Machine agents (including state and

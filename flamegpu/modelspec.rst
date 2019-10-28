@@ -32,7 +32,7 @@ The Environment
 ===============
 
 The environment element is used to hold global information which relates to the simulation.
-This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`), an optional number of initialisation, step and exit functions and an optional number of graph data structures.
+This information includes, zero or more constant, or global, variables (which are constant for all agents over the period of either the simulation or single simulation iteration), at least a single non optional function file containing agent function script (see :ref:`Agent Function Scripts and the Simulation API`), an optional number of initialisation, step and exit functions and an optional number of graph data structures.
 
 .. code-block:: xml
    :linenos:
@@ -79,7 +79,7 @@ Simulation constants can be set either as default values as show below, within t
 Function Files
 --------------
 
-The ``functionFiles`` element is not optional and must contain a single file element which defines the name of a source code file which holds the scripted agent functions.
+The ``functionFiles`` element is not optional and must contain at least a single file element which defines the name of a source code file which holds the scripted agent functions.
 More details on the format of the function file are given in :ref:`Agent Function Scripts and the Simulation API`.
 The example below shows the correct XML format for a function file named ``functions.c``.
 

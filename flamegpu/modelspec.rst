@@ -9,7 +9,7 @@ Introduction
 ============
 
 FLAME GPU models are specified using XML format within an XMML document.
-The syntax of the model file is governed by two XML Schemas, an abstract base Schema describes the syntax of a basic XMML agent model (compatible with HPC and CPU versions of the FLAME framework) and a concrete GPU Schema extension this to add various bits of additional model information.
+The syntax of the model file is governed by two XML Schemas, an abstract base Schema describes the syntax of a basic XMML agent model (compatible with HPC and CPU versions of the FLAME framework) and a concrete GPU Schema which extends this to add various bits of additional model information.
 Within this chapter the XML namespace (xmlns) gpu is used to qualify the XML elements which extend the basic Schema representation.
 A high level overview of a an XMML model file is described below with various sections within this chapter describing each part in more detail.
 
@@ -55,7 +55,7 @@ Simulation constants are defined as (global) variables and may be of type int, f
 Constant variables must each have a unique name which is used to reference them within simulation code and can have an optional static array length (of size greater than 0). Table [var_types]  summarizes the supported data types for the environment variables.
 The description element arrayLength element and defaultValue element are all optional.
 The below code shows the specification of two constant variables: the first represents a single ``int`` constant (with a default value of ``1``), the second indicates an ``int`` array of length ``5``.
-Simulation constants can be set either as default values as show below, within the initial agent XML file (see :ref:`Initial Simulation Constants`) or at run-time are described in :ref:`Host Simulation Hooks`. Values set in initial XML values will overwrite a default value and values which are set at runtime will overwrite values set in initial agent XML files.
+Simulation constants can be set either as default values as shown below, within the initial agent XML file (see :ref:`Initial Simulation Constants`) or at run-time as described in :ref:`Host Simulation Hooks`. Values set in initial XML values will overwrite a default value and values which are set at runtime will overwrite values set in initial agent XML files.
 
 .. code-block:: xml
    :linenos:
@@ -113,7 +113,7 @@ If an ``initFunctions`` element is specified there must be at least a single ``i
 Step Functions
 --------------
 
-Step functions are similarly defined to initialisation functions, requiring at least a single ``stepFunction`` child element if the ``stepFunctions`` element is defined. These functions are called at the end of each iteration step, i.e. after all the layers, as defined in section :ref:`Step Functions (API)`, are executed each step. Example uses of this function are to calculate agent averages during the iteration step or sort functions.
+Step functions are defined similarly to initialisation functions, requiring at least a single ``stepFunction`` child element if the ``stepFunctions`` element is defined. These functions are called at the end of each iteration step, i.e. after all the layers, as defined in section :ref:`Step Functions (API)`, are executed each step. Example uses of this function are to calculate agent averages during the iteration step or sort functions.
 
 .. code-block:: xml
    :linenos:
@@ -146,10 +146,10 @@ Graph Data Structures
 
 Some agent based models may contain environmental data structures as a graph. To ensure high performance access of this data, and enable communication restricted to a graph based data structure FLAME GPU 1.5.0 introduces a list of graphs to the environment.
 
-Graphs are implemented using the Compressed Spares Row (CSR) data, enable high performance read access. Currently it is not possible to pragmatically modify (or update) the graph data structure at runtime.
+Graphs are implemented using the Compressed Sparse Row (CSR) data format, enabling high performance read access. Currently it is not possible to pragmatically modify (or update) the graph data structure at runtime.
 
 The following example shows the definition of a static graph with the name ``graph``, with a text description.
-The ``<gpu:loadFromFile>`` tag defines that the graph is to be loaded from a ``json`` file stored on disk, called ``network.json``. This path is relative to the initial states file. Alternatively the graph can be loaded from an XML format via ``<gpu:xml>relative/path/to/file.xml</gpu:xml>``.
+The ``<gpu:loadFromFile>`` tag defines that the graph is to be loaded from a ``json`` file stored on disk, called ``network.json``. This path is relative to the initial states file. Alternatively, the graph can be loaded from an XML format via ``<gpu:xml>relative/path/to/file.xml</gpu:xml>``.
 
 The ``<gpu:vertex>`` and ``<gpu:edge>`` tags define the list of ``<variables>`` which the data structure contains, and the maximum number of each type of element via the ``<gpu:bufferSize>`` tag. 
 Vertices require a variable called `id`, with an integer based type, such as ``int``, ``unsigned int``, ``unsigned long long int`` etc. 
@@ -212,16 +212,16 @@ Edges require an ``id`` variable of an integer type, a ``source`` variable of an
 Defining an X-Machine Agent
 ===========================
 
-A XMML model file must contain a single ``xagents`` element which in turn must define at least a single ``xagent``.
+An XMML model file must contain a single ``xagents`` element which in turn must define at least a single ``xagent``.
 An ``xagent`` is an agent representation of an X-Machine and consists of a name, optional description, an internal memory set (*M* in the formal definition), a set of agent functions (or next state partial functions, *F*, in the formal definition) and a set of states (*Q* in the formal definition).
-In addition to this FLAMEGPU requires two additional pieces of information (which are not required in the original XMML specification), a ``type`` and a ``bufferSize``.
+In addition to this, FLAMEGPU requires two additional pieces of information (which are not required in the original XMML specification), a ``type`` and a ``bufferSize``.
 The ``type`` element refers to the type of agent with respect to its relation with its spatial environment.
-An agent type can be either ``discrete`` or ``continuous``, discrete agents occupy non mobile 2D discrete spatial partitions (cellular automaton) where as continuous agents are assumed to occupy a continuous space environment (although in reality they may in fact be non spatial more abstract agents).
+An agent type can be either ``discrete`` or ``continuous``, discrete agents occupy non mobile 2D discrete spatial partitions (cellular automaton) whereas continuous agents are assumed to occupy a continuous space environment (although in reality they may in fact be non spatial more abstract agents).
 As all memory is pre-allocated on the GPU a ``bufferSize`` is required to represent the largest possible size of the agent population.
 That is the maximum number of x-machine agent instances of the format described by the XMML model.
 There is no performance disadvantage to using a large ``bufferSize`` however it is the user's responsibility to ensure that the GPU contains enough memory to support large populations of agents.
 It is recommended that the bufferSize always be a power of two number (i.e. ``1024``, ``2048``, ``4096``, ``16384``, etc) as it will most likely be rounded to one during simulation.
-For discrete agents the bufferSize is strictly limited to only power of 2 numbers which have squarely divisible dimensions (i.e. the square of the bufferSize must be a whole number).
+For discrete agents, the bufferSize is strictly limited to only power of 2 numbers which have squarely divisible dimensions (i.e. the square of the bufferSize must be a whole number).
 If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit. Care must be taken when defining the value of bufferSize. Any datatype which would exceed the stack limit of 2GB (calculated as bufferSize*sizeof(agent variable data type) will fail to build under windows. E.g. This limits the bufferSize for 4byte variables (int, float, etc) to 62.5 million.
 
 Each expandable aspect of an XMML agent representation in the below example is discussed within this section with the exception of agent functions, which due to their dependence of the definition of messages, are discussed later in :ref:`Defining an Agent function`.
@@ -250,7 +250,7 @@ Agent Memory
 ------------
 
 
-Agent memory consists of a number of variables (at least one) which are use to hold information.
+Agent memory consists of a number of variables (at least one) which are used to hold information.
 An agent ``variable`` must have a unique ``name`` and may be of ``type`` ``int``, ``float`` or ``double`` (CUDA compute capability 1.3 or beyond). Table [var_types]  summarizes the supported data types for the agent variables.
 Default values are always ``0`` unless a ``defaultValue`` element is specified or if a value is specified within the XML input states file (which supersedes the default value).
 There are no specified limits on the maximum number of agent variables however the performance tips noted in :ref:`Performance Tips` should be taken into account.
@@ -331,9 +331,9 @@ Message partition schemes are used to ensure that the most optimal cycling of me
 Message Variables
 -----------------
 
-The message ``variables`` element consists of a number of ``variable`` elements (at least one) which are use to hold communication information.
+The message ``variables`` element consists of a number of ``variable`` elements (at least one) which are used to hold communication information.
 A ``variable`` must have a unique ``name`` and may be of ``type`` ``{int``, ``float`` or ``double`` (CUDA Compute capability 2.0 or beyond). 
-Unlike with agent variables, message variables support only scalar single memory values (i.e. no static or dynamic arrays). Table [var_types]  summarizes the supported data types for the message variables.
+Unlike agent variables, message variables support only scalar single memory values (i.e. no static or dynamic arrays). Table [var_types]  summarizes the supported data types for the message variables.
 There are no specified limits on the maximum number of message variables however increased message size will have a negative effect on performance in all partitioning cases (and in particular when non partitioned messages are used).
 The format of message variable specification shown below is identical to that of agent memory.
 The only exception is the requirement of certain variable names which are required by certain partitioning types.
@@ -361,11 +361,11 @@ The example below shows an example of message memory containing two message vari
 Non partitioned Messages
 ------------------------
 
-None partitioned messages do not use any filtering mechanism to reduce the number of messages which will be iterated by agent functions which use the message as input.
-None partitioned messages therefore require a brute force or :math:`O(n^{2})` message iteration loop wherever the message list is iterated.
+Non partitioned messages do not use any filtering mechanism to reduce the number of messages which will be iterated by agent functions which use the message as input.
+Non partitioned messages therefore require a brute force or :math:`O(n^{2})` message iteration loop wherever the message list is iterated.
 As non partitioned messages do not require any message variables with location information the partition type is particularly suitable for communication between non spatial or more abstract agents.
 Brute force iteration is obviously computationally expensive, however non partitioned message iteration requires very little overhead (or setup) cost and as a result for small numbers of messages it can be more efficient than either limited range technique.
-There is no strict rule governing performance and different GPU hardware will produce different results depending on it capability.
+There is no strict rule governing performance and different GPU hardware will produce different results depending on its capability.
 It is therefore left to the user to experiment with different message partitioning types within a simulation.
 The example below shows the format of the partitioningNone element tag.
 
@@ -379,7 +379,7 @@ Discrete Partitioned Messages
 -----------------------------
 
 Discrete partitioned messages are messages which may only originate from non mobile discrete agents (cellular automaton).
-A discrete partitioning message scheme requires the specification of a radius which indicates the range (in in 2D discrete space) which a message iteration will extend to.
+A discrete partitioning message scheme requires the specification of a radius which indicates the range (in 2D discrete space) which a message iteration will extend to.
 A radius value of ``0`` indicates that only a single message will be returned from message iteration.
 A value of greater than ``0`` indicates that message iteration will loop through radius directions in both the ``x`` and a ``y`` dimension, but ignore the centre cell (e.g.
 a range of ``1`` will iterate ``(3x3)-1=8`` messages, a range of ``2`` will iterate ``(5x5)-1=24``).
@@ -405,14 +405,14 @@ Spatially partitioned messages are messages which originate from continuous spac
 A spatially partitioned message scheme requires the specification of both a radius and a set of environment bounds.
 The ``radius`` represents the range in which message iteration will extend to (from its originating point).
 The environment bounds represent the size of the space which massages may exist within.
-If a message falls outside of the environment bounds then it will be bound to the nearest possible location within it.
+If a message falls outside of the environment bounds, then it will be bound to the nearest possible location within it.
 The space within the defined bounds is partitioned according to the radius with a total of ``P`` partitions in each dimension, where for each dimension;
 
 .. math::
     P = ceiling((max\_bound - min\_bound) / radius)
 
-The partitions dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space. The value of ``P`` must not exceed 62.5 million due to limitations on the size of stack memory.
-The value of ``P`` must be at least 3 in both the ``x`` and ``y`` axis, and at least ``1`` in the ``z`` axis, else a compilation error will occur. If the desired configuration does not meet these critera consider using Non Partitioned Messages.
+The partition's dimensions are then used to construct a partition boundary matrix (an example of use within message iteration is provided in :ref:`Spatially Partitioned Message Iteration`) which holds the indices of messages within each area of partitioned space. The value of ``P`` must not exceed 62.5 million due to limitations on the size of stack memory.
+The value of ``P`` must be at least 3 in both the ``x`` and ``y`` axis, and at least ``1`` in the ``z`` axis, else a compilation error will occur. If the desired configuration does not meet these criteria, consider using Non Partitioned Messages.
 Spatially partitioned message iteration can then iterate a varying number of messages from a fixed number of adjacent partitions in partition space to ensure each message within the specified radius has been considered.
 When iterating messages, the environment is wrapped in the ``x`` and ``y`` axis to form a torus. No wrapping occurs in the ``z`` axis. 
 
@@ -439,9 +439,9 @@ For continuously spaced agents in 2D space ``P`` in the x z dimension should be 
 Graph Edge Partitioned Messaging
 --------------------------------
 
-Graph Edge Partitioned messages are messages which originate from continuous spaces agents in an environment where communication is restricted to the structure of a graph. I.e agents which traverse along a network such as a road network. A graph edge partitioned message scheme requires the specification of a graph and the corresponding message variable which refers to the graph edge id.
+Graph Edge Partitioned messages are messages which originate from continuous spaces agents in an environment where communication is restricted to the structure of a graph. I.e. agents which traverse along a network such as a road network. A graph edge partitioned message scheme requires the specification of a graph and the corresponding message variable which refers to the graph edge id.
 
-Messages are sorted by the ``messageEdgeId`` variable, which enables high performance access to messages on the edge. Using the graph data structure it is then possible to traverse the graph accessing messages from multiple edges.
+Messages are sorted by the ``messageEdgeId`` variable, which enables high performance access to messages on the edge. Using the graph data structure, it is then possible to traverse the graph accessing messages from multiple edges.
 
 The following example defines a graph edge partitioning scheme corresponding to a ``staticGraph`` named ``graph`` where the message variable ``edge_id`` contains the edge from which the message corresponds.
 
@@ -485,7 +485,7 @@ Defining an Agent function
 An optional list of agent ``functions`` is described within an X-Machine agent representation and must contain a list of at least a single agent ``function`` element.
 In turn, a function must contain a non optional ``name``, an optional ``description``, a ``currentState``, ``nextState``, an optional single message input, and optional single message output, an optional single agent output, an optional global function condition, an optional function condition, a reallocation flag and a random number generator flag.
 The current state is defined within the ``currentState`` element and is used to filter the agent function by only applying it to agents in the specified state.
-After completing the agent function agents then move into the state specified within the ``nextState`` element.
+After completing the agent function, agents then move into the state specified within the ``nextState`` element.
 Both the current and ``nextState`` values are required to have values which exist as a state/name within the state list (states) definition.
 The ``reallocate`` element is used as an optional flag to indicate the possibility that an agent performing the agent function may die as a result (and hence require removing from the agent population).
 By default this value is assumed ``true`` however if a value of false is specified then the processes for removing dead agents will not be executed even if an agent indicates it has died (see agent function definitions in :ref:`Defining an Agent function`).
@@ -519,7 +519,7 @@ Agent Function Message Inputs
 
 An agent function message input indicates that the agent function will iterate the list of messages with a name equal to that specified by the non optional messageName element.
 It is therefore required that the ``messageName`` element refers to an existing (XPath) ``messages/message/name`` defined within the XMML document.
-In addition to this an agent function cannot iterate a list of messages without specifying that it is an ``input`` within the XMML model file (message iteration functions are parameterised to prevent this).
+In addition to this, an agent function cannot iterate a list of messages without specifying that it is an ``input`` within the XMML model file (message iteration functions are parameterised to prevent this).
 
 .. code-block:: xml
    :linenos:
@@ -542,7 +542,7 @@ The type may be either``single_message`` or ``optional_message``, where ``single
 The type of messages which can be output by discrete agents are not restricted however continuous type agents can only output messages which do not use discrete message partitioning (e.g.
 no partitioning or spatial partitioning).
 The example below shows a message output using ``single_message`` type.
-This will assume every agent outputs a message, if the functions script fails to output a message for every agent a message with default values (of ``0``) will be created instead.
+This will assume every agent outputs a message. If the functions script fails to output a message for every agent, a message with default values (of ``0``) will be created instead.
 
 .. code-block:: xml
    :linenos:
@@ -561,7 +561,7 @@ Agent Function X-Agent Outputs
 An agent function ``xagentOutput`` indicates that the agent function will output an agent with a name equal to that specified by the non optional ``xagentName`` element.
 This differs slightly from the formal definition of an x-machine which does not explicitly define a technique for the creation of new agents but adds functionality required for dynamically changing population sizes during simulation runtime.
 The ``xagentName`` element belonging to an ``xagentOutput`` element must refer to an existing (XPath) ``xagents/agent/name`` defined within the XMML document.
-It is not possible for an agent function script to output a agent without specifying that it is an ``xagentOutput`` within the XMML model file (agent output functions are parameterised to prevent this).
+It is not possible for an agent function script to output an agent without specifying that it is an ``xagentOutput`` within the XMML model file (agent output functions are parameterised to prevent this).
 In addition to the ``xagentName`` element a message output also requires a ``state``.
 The ``state`` represents the state from the list of state elements belonging to the specified agent which the new agent should be created in.
 Only ``continuous`` type agents are allowed to output new agents (which must also be of type ``continuous``).
@@ -585,8 +585,8 @@ Function Conditions
 
 An agent function ``condition`` indicates that the agent function should only be applied to agents which meet the defined condition (and in the correct state specified by ``currentState``).
 Each function condition consists of three parts a left hand side statement (``lhs``), an ``operator`` and a right hand side statement (``rhs``).
-Both the ``lhs`` and ``rhs`` elements may contain either a ``agentVariable`` a value or a recursive condition element.
-An ``agentVariable`` element must refer to a agent variable defined within the agents list of variable names (i.e. the XPath equivalent of 
+Both the ``lhs`` and ``rhs`` elements may contain either an ``agentVariable`` a value or a recursive condition element.
+An ``agentVariable`` element must refer to an agent variable defined within the agents list of variable names (i.e. the XPath equivalent of 
 ``xagent/memory/variable/name``).
 A ``value`` element may refer to any numeric value or constant definition (defined within the agent function scripts).
 The use of recursive conditions is demonstrated below by embedding a condition within the ``rhs`` element of the top level condition.
@@ -625,7 +625,7 @@ In the above example the function condition generates the following pseudo code 
 The ``condition`` element may refer to any logical operator.
 Care must be taken when using angled brackets which in standard form will cause the XML syntax to become invalid.
 Rather than the left hand bracket (less than) the correct xml syntax of 
-``&lt;`` should be used. Likewise the right hand bracket (greater than) should be replaced with 
+``&lt;`` should be used. Likewise, the right hand bracket (greater than) should be replaced with 
 ``&gt;``.
 
 .. note ::
@@ -650,7 +650,7 @@ For example, the definition at the end of this section, resulting in the followi
     (((movement) < (0.25)) == true)
 
 May be evaluated as false up to ``200`` times (i.e. in ``200`` separate simulation iterations) before the global condition will be ignored and the function is applied to every agent.
-Following maximum number of iterations being reached the iteration count is reset once the agent function has been applied.
+Following the maximum number of iterations being reached, the iteration count is reset once the agent function has been applied.
 
 .. code-block:: xml
    :linenos:
@@ -672,15 +672,15 @@ Following maximum number of iterations being reached the iteration count is rese
 Function Layers
 ===============
 
-Function layers represent the control flow of the simulation processes and hence describes any functional dependencies.
+Function layers represent the control flow of the simulation processes and hence describe any functional dependencies.
 The sequence of layers defines the sequential order in which agent functions are executed.
 Complete execution of every layer of agent functions represents a single simulation iteration which may be repeated any number of times.
-Synthetically within the model definition a single layers element must contain at least one (or more) layer element.
+Syntactically, the model definition a single layers element must contain at least one (or more) layer element.
 Each layer element may contain at least one (or more) ``gpu:layerFunction`` elements which defines only a ``name`` which must correspond to a function name (e.g. the XPath equivalent of ``xagents/xagent/functions/function/name``.
 Within a given layer, the order of execution of layer functions should not be assumed to be sequential (although in the current version of the software it is, future versions will execute functions within the same layer in parallel).
 For the same reason functions within the same layer should not have any communication or internal dependencies (for example via message communications or execution order dependency) in which case they should instead be represented within separate layers which guarantee execution order and global synchronisation between the functions. Functions which apply to the same agent must therefore also not exist within the same layer.
 The below example demonstrates the syntax of specifying a simulation consisting of three agent functions.
-There are no dependencies between ``function1`` and ``function2`` which in this case can be thought of as being functions from two different agents definitions with no shared message inputs or outputs.
+There are no dependencies between ``function1`` and ``function2`` which in this case can be thought of as being functions from two different agents' definitions with no shared message inputs or outputs.
 
 .. code-block:: xml
    :linenos:
@@ -709,11 +709,11 @@ Initial XML Agent Data
 The initial agent data information is stored in an XML file which is passed to the simulator as a parameter before running the simulation.
 Within this initial agent data XML file, a single ``states`` element contains a single iteration number ``itno`` and any number of (including none) ``xagent`` elements.
 The syntax of the ``xagent`` element depends on the agent definitions contained within the XMML model definition file.
-A ``name`` element is always required and must represent an agent name contained within the XPath equivalent of ``xgents/agent/name`` in the XMML model definition.
-Following this an element may exist for each of the named agents memory variables (XPath) ``xagents/agent/memory/variable/name``).
+A ``name`` element is always required and must represent an agent name contained within the XPath equivalent of ``xagents/agent/name`` in the XMML model definition.
+Following this an element may exist for each of the named agent's memory variables (XPath) ``xagents/agent/memory/variable/name``).
 Each named element is then expected to contain a value of the same ``type`` as the agent memory variable defined.
-If the initial agent data XML file neglects to specify the value of a variable defined within an agents memory then the value is assumed to be the ``defaultValue`` otherise ``0``.
-If an element defines a variable name which does not exist within the XMML model definition then a warning is generated and the value is ignored.
+If the initial agent data XML file neglects to specify the value of a variable defined within an agent's memory, then the value is assumed to be the ``defaultValue`` otherwise ``0``.
+If an element defines a variable name which does not exist within the XMML model definition, then a warning is generated and the value is ignored.
 The example below represents a single agent corresponding to the agent definition in :ref:`Defining an X-Machine Agent`.
 
 .. code-block:: xml
@@ -733,10 +733,10 @@ The example below represents a single agent corresponding to the agent definitio
 
 
 Care must be taken in ensuring that the set of initial data for the simulation does not exceed any of the defined ``bufferSize`` (i.e. the maximum number of a given type of agents) for any of the agents.
-If buffer size is exceeded during initial loading of the initial agent data then the simulation will produce an error.
+If buffer size is exceeded during initial loading of the initial agent data, then the simulation will produce an error.
 
 Another special case to consider is the use of 2D discrete agents where the number of agents within the set of initial agent data must match exactly the ``bufferSize`` (which must also be a power of 2) defined within the XMML models agent definition.
-Furthermore the simulation will expect to find initial agents stored within the XML file in row wise ascending order.
+Furthermore, the simulation will expect to find initial agents stored within the XML file in row wise ascending order.
 
 Initial Simulation Constants
 ----------------------------
@@ -854,11 +854,11 @@ FLAME GPU supports the commonly used scalar types and a set of vector types (cur
 +==========================+=======================================================================+
 | bool                     | Conditional type with values of true or false                         |
 +--------------------------+-----------------------------------------------------------------------+
-| (unsgined) char          | Integer type using (typically)  8 bits. Can be signed or unsigned     |
+| (unsigned) char          | Integer type using (typically)  8 bits. Can be signed or unsigned     |
 +--------------------------+-----------------------------------------------------------------------+
-| (unsgined) short         | Integer type using (typically) 16 bits. Can be signed or unsigned     |
+| (unsigned) short         | Integer type using (typically) 16 bits. Can be signed or unsigned     |
 +--------------------------+-----------------------------------------------------------------------+
-| (unsgined) int           | Integer type using (typically) 32 bits. Can be signed or unsigned     |
+| (unsigned) int           | Integer type using (typically) 32 bits. Can be signed or unsigned     |
 +--------------------------+-----------------------------------------------------------------------+
 | (unsigned) long long int | Integer type using (typically) 64 bits. Can be signed or unsigned     |
 +--------------------------+-----------------------------------------------------------------------+
@@ -896,7 +896,7 @@ FLAME GPU supports the commonly used scalar types and a set of vector types (cur
 | dvec4       | double       | 4        |
 +-------------+--------------+----------+
 
-In addition FLAME GPU supports array variables, for agent member variables, environment constants and as member variables of staticGraphs. Array variables are **not** supported for message variables.
+In addition, FLAME GPU supports array variables, for agent member variables, environment constants and as member variables of staticGraphs. Array variables are **not** supported for message variables.
 
 +-----------------------+-----------------------+-----------------+
 |                       | Scalar & Vector Types | Array Variables |

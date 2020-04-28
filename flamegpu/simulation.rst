@@ -8,17 +8,17 @@
 Introduction
 ============
 
-The processes of building and running a simulation is made easier described within this chapter as are a number of tools and procedures which simplify the simulation code generation and compilation of simulation executables.
+The processes for building and running a simulation are described within this chapter, as are a number of tools and procedures which simplify the simulation code generation and compilation of simulation executables.
 In order to use the FLAME GPU SDK it should be placed in a directory which does not contain any spaces (preferably directly within the C: drive or root or root operating system drive).
 The host machine must also be running windows with a copy of the .NET runtime (used within the XSLT template processor) and must contain NVIDIA GPU hardware with Compute level 1.0.
 
 Generating a Functions File Template
 ====================================
 
-Chapter :ref:`Summary of Agent Function Arguments` previously described the exact argument order for agent function declarations however in most cases it is sensible to use the provided XSLT template ``functions.xslt`` located in the ``FLAMEGPU/templates`` directory within the FLAME GPU SDK) to generate a agent function source file with empty agent function declarations automatically using your XMML model file.
+Chapter :ref:`Summary of Agent Function Arguments` previously described the exact argument order for agent function declarations however in most cases it is sensible to use the provided XSLT template ``functions.xslt`` located in the ``FLAMEGPU/templates`` directory within the FLAME GPU SDK) to generate an agent function source file with empty agent function declarations automatically using your XMML model file.
 Once this has been generated the agent function scripts can be implemented within the function declarations rather easily.
 Care must however be taken in ensuring that if the XMML model file is later modified that the agent function arguments are updated manually where necessary.
-Likewise be careful not to overwrite any existing function source file when generating a new one using the XSLT template.
+Likewise, be careful not to overwrite any existing function source file when generating a new one using the XSLT template.
 Generation of blank function source files is not incorporated into the visual studio template project and must be manually accomplished.
 A .NET based XSLT processor is provided within the FLAME GPU SDK for this purpose (``XSLTProcessor.exe`` located in the ``tools`` directory) and can be used via the command line as follows (or via the ``GenerateFunctionsFileTemplate`` batch file located in the ``tools`` directory of the FLAME GPU SDK);
 
@@ -27,7 +27,7 @@ A .NET based XSLT processor is provided within the FLAME GPU SDK for this purpos
     XSLTProcessor.exe XMLModelFile.xml functions.xslt functions.c
 
 
-Alternatively any compliant XSLT processor such as Xalan, Unicorn or even Firefox web browser can be used.
+Alternatively, any compliant XSLT processor such as Xalan, Unicorn or even Firefox web browser can be used.
 
 FLAME GPU Template Files
 ========================
@@ -55,21 +55,21 @@ Visual Studio Project Build Configurations
 ------------------------------------------
 
 The FLAME GPU examples and template project file contain build configurations 64 bit Windows (``x64``) environments. 32 bit windows has been removed due to limitations on GPU memory addressing since version 1.3.0.
-For each platform the project also contains four configurations for debugging (``Debug``) and release versions (``Release``) of both ``console`` based simulation and ``visualisation`` simulation.
+For each platform, the project also contains four configurations for debugging (``Debug``) and release versions (``Release``) of both ``console`` based simulation and ``visualisation`` simulation.
 The two debug options disable all compiler optimisations and generate debug information for debugging host (non GPU) code and enables CUDA device emulation for GPU (device) debugging.
 The visualisation configurations enable building of visualisation code and specify a pre processor macro (``VISUALISATION``) which is used by a number of pre-processor conditionals to change the simulations expected arguments (see :ref:`Simulation Execution Modes and Options`).
 
 Visual Studio Project Virtual File Structure
 --------------------------------------------
 
-Within the FLAME GPU examples and template projects code is organised into the following virtual folders; 
+Within the FLAME GPU examples and template projects, code is organised into the following virtual folders; 
 
-- ``FLAME GPU`` Consisting of a folder containing the FLAME GPU XML schemas and Code generating templates. These files are shared amongst all examples so editing them will change simulation code generated for other projects.
+- ``FLAME GPU`` Consisting of a folder containing the FLAME GPU XML schemas and code generating templates. These files are shared amongst all examples so editing them will change simulation code generated for other projects.
 - ``FLAMEModel`` Contains the XMML model file and the agent functions file (usually called ``functions.c``). Note that the ``functions.c`` file is actually excluded from the build processes as it is built by the dynamically generated ``simulation.cu`` source file which includes it.
 - ``Dynamic Code`` Contains the dynamically generated FLAME GPU simulation code. This code will be overwritten each time the project is built so any changes to this files will be lost unless template transformation is turned off using the FLAME GPU build rule (see :ref:`FLAME GPU Build Rule Options`).
-- *Additional Source Code* This folder should contain any hard coded simulation specific source or header files. By default the FLAME GPU project template defines a single ``visualisation.h`` file in this folder which may be modified to set a number of variables such as viewing distance and clipping. Within the FLAME GPU examples this folder is typically used to sore any model specific visualisation code which replaces the dynamically generated visualisation source file.
+- *Additional Source Code* This folder should contain any hard coded simulation specific source or header files. By default, the FLAME GPU project template defines a single ``visualisation.h`` file in this folder which may be modified to set a number of variables such as viewing distance and clipping. Within the FLAME GPU examples this folder is typically used to store any model specific visualisation code which replaces the dynamically generated visualisation source file.
 
-The physical folders of the SDK structure a self explanatory however it is worth noting that executable files generated by the Visual Studio build processes are output in the SDKs ``bin`` folder which also contains the CUDA run time ``dlls``. 
+The physical folders of the SDK structure are self explanatory however it is worth noting that executable files generated by the Visual Studio build processes are output in the SDKs ``bin`` folder which also contains the CUDA run time ``dlls``. 
 
 Build Process
 -------------
@@ -78,8 +78,8 @@ The Visual Studio build process consists of a number of stages which call variou
 The first of these is the FLAME GPU build tool (described in more detail in the following section) which generates the dynamic simulation code from the FLAME GPU templates and mode file.
 Following this the simulation code (within the Dynamic Code folder) is built using the CUDA build rule which compiles the source files using the NVIDIA CUDA compiler 
 ``nvcc``.
-Finally any C or C++ source files are compiled using MSVC compiler and are then linked with the CUDA object files to produce the executable.
-To start the build processes select the ``Build`` menu followed by ``Build Solution`` or use the ``F7`` hotkey.
+Finally, any C or C++ source files are compiled using MSVC compiler and are then linked with the CUDA object files to produce the executable.
+To start the build processes, select the ``Build`` menu followed by ``Build Solution`` or use the ``F7`` hotkey.
 If the first build step in the Visual Studio skips the FLAME GPU build tool a complete rebuilt can be forced by selecting the ``Build`` menu followed by ``Rebuild Solution`` (or ``Ctrl + Alt + F7``).
 
 FLAME GPU Build Rule Options
@@ -102,7 +102,7 @@ Visual Studio Launch Configuration Command Arguments
 In order to set the execution arguments (described in the next section) for simulation executable in any one of one of the four launch configurations, the ``Command Arguments`` property can be set form the Project Properties Page (Select ``Project`` Menu followed by ``FLAMEGPU\_Project Properties``).
 The ``Command Arguments`` property is located under ``Configuration Properties -> Debug`` (see :ref:`Agent Function Scripts and the Simulation API`).
 Each configuration has its own set of ``Command Arguments`` so when moving between configurations these will need to be set.
-Likewise the ``Configuration Properties`` are computer and user specific so these cannot be preset and must be specified the first time each example is compiled and run.
+Likewise, the ``Configuration Properties`` are computer and user specific so these cannot be preset and must be specified the first time each example is compiled and run.
 The Visual Studio macro ``$InputDir`` can be used to specify the working directory of the project file which makes locating initial agent data XML files for many of the examples much easier (these are normally located in the iterations folders of each example).
 
 The Command Arguments have been set the simulation executable can be launched by selecting ``Start Debugging`` from the ``Debug`` menu or using the ``F5`` hotkey (this is the same in both release and debug launch configurations).
@@ -137,8 +137,8 @@ Or for a visualisation example in release mode:
 In the project specific portion of the Makefile (i.e ``examples/EmptyExample/Makefile``) several variables exist which allow the project to be customised.
 
 - ``EXAMPLE``: Controls the name of the project / executables generated.
-- ``HAS_VISUALISATION``: Determins if a visualisation mode should be supported or not.
-- ``CUSTOM_VISUALISATION``: Determins if a custom or the default visualisation should be used.
+- ``HAS_VISUALISATION``: Determines if a visualisation mode should be supported or not.
+- ``CUSTOM_VISUALISATION``: Determines if a custom or the default visualisation should be used.
 - ``FLAMEGPU_ROOT``: The relative path from the Makefile to the main ``FLAMEGPU`` directory. I.e. ``../../``
 - ``EXAMPLE_BIN_DIR``: Path to the location to place executables.
 - ``EXAMPLE_BUILD_DIR``: Path to the build directory for this project.
@@ -159,7 +159,7 @@ Creating a New FLAME GPU Example Project
 
 The simplest way to create a new FLAME GPU example project is to copy and modify an existing project, renaming visual studio solution / project files, and modifying the Makefile.
 
-A python script is provided to simplify this process for you, makeing the required changes. I.e. to create a new example projected called ``NewExample``, based on the ``EmptyExample`` run the following command.
+A python script is provided to simplify this process for you, making the required changes. I.e. to create a new example projected called ``NewExample``, based on the ``EmptyExample`` run the following command.
 
 .. code-block:: bash
 
@@ -220,11 +220,11 @@ Many of the options for the default visualisation are contained within the ``vis
 
 - ``SIMULATION_DELAY`` Many simulations are executed extremely quickly making visualisation a blur. This definition allows an artificial delay by executing this number of visualisation render loops before each simulation iteration is processed.
 - ``WINDOW_WIDTH`` and ``WINDOW_HEIGHT`` Specifies the size of the visualisation window 
-- ``NEAR_CLIP`` and ``FAR_CLIP`` Specifies the near an far clipping plane used for OpenGL rendering.
+- ``NEAR_CLIP`` and ``FAR_CLIP`` Specifies the near and far clipping planes used for OpenGL rendering.
 - ``SPHERE_SLICES`` The number of slices used to create the sphere geometry representing a single agent in the visualisation.
 - ``SPHERE_STACKS`` The number of stacks used to create the sphere geometry representing a single agent in the visualisation.
 - ``SPHERE_RADIUS`` The physical size of the sphere geometry representing a single agent in the visualisation. This will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
-- ``VIEW_DISTANCE`` The camera viewing distance. Again this will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
+- ``VIEW_DISTANCE`` The camera viewing distance. Again, this will need to be a sensible value which corresponds with the environment size and agent locations within your model/simulation.
 - ``LIGHT_POSITION`` The visualisation will contain a single light source which will be located at this position.
 - ``PAUSE_ON_START`` If defined the simulation is paused on launch, allowing the simulation to be visualised one iteration at a time. 
 
@@ -248,7 +248,7 @@ Creating a Custom Visualisation
 ===============================
 
 
-Customised visualisation can easily be integrated to a FLAME GPU project by extending the automatically generated visualisation file (the output of processing ``visualisation.xslt``). *Note: When doing this within Visual Studio it is important to turn off the template processing of the ``visualisation.xslt`` file in each of the launch configurations as processing them will overwrite any custom code!.*
+Customised visualisation can easily be integrated to a FLAME GPU project by extending the automatically generated visualisation file (the output of processing ``visualisation.xslt``). *Note: When doing this within Visual Studio it is important to turn off the template processing of the ``visualisation.xslt`` file in each of the launch configurations as processing them will overwrite any custom code!*
 Many of the FLAME GPU SDK examples use customised visualisations in this way.
 As with the default visualisations any custom visualisation must define the following function prototypes defined in the automatically generated simulation header.
 
@@ -261,7 +261,7 @@ As with the default visualisations any custom visualisation must define the foll
 
 
 
-The first of these can be used to initialise any OpenGL memory and CUDA OpengGL bindings as well as displaying the user interface.
+The first of these can be used to initialise any OpenGL memory and CUDA OpenGL bindings as well as displaying the user interface.
 The second of these functions must take control of the simulation by repeatedly calling the draw and singleIteration (which advances the simulation by a single iteration step) functions in a recursive loop.
 A more detailed description of the default rendering technique is provided within other FLAME GPU documentation (listed in :ref:`Purpose of This Document`).
 

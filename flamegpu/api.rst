@@ -10,15 +10,15 @@ Introduction
 
 Agent function scripts define the behaviour of agents by describing changes to memory and through the iteration and creation of messages and new agents.
 The behaviour of the agent function is described from the perspective of a single agent however the simulator will apply in parallel the same agent function code to each agent which is in the correct start state (and meets any of the defined function conditions).
-Agent function scripts are defined using a simple C based syntax with the agent function declarations, and more specifically the function arguments dependant on the XMML function definition.
+Agent function scripts are defined using a simple C based syntax with the agent function declarations, and more specifically the function arguments, dependent on the XMML function definition.
 The use of message input and output as well as random number generation will all change the function arguments in a way which is described within this section.
-Likewise the simulation API functions for message communication are dependent on the definition of the simulation model contained with the XMML model definition.
+Likewise, the simulation API functions for message communication are dependent on the definition of the simulation model contained with the XMML model definition.
 A single C source file is required to hold all agent function declarations and must contain an include directive for the file ``header.h`` which contains model specific agent and message structures.
 Agent functions are free to use many features of common C syntax with the following important exceptions: 
 
 - Globally Defined Variables: i.e. Variables declared outside of any function scope are not permitted and should instead be defined as global variables within the XMML model file and used as described in :ref:`Simulation Constants (Global Variables)`. *Note: The use of pre-processor macro directives for constants is supported and can be freely used without restriction.*
-- Include Directives: Are permitted however as agent functions are functions which are ran on the GPU during simulation they may not call non GPU code. This implies that including and linking with non CUDA libraries is not supported.
-- External Function Calls: As above external function calls may only be made to CUDA ``__device__`` functions. Many common math functions calls such as ``sin``, ``cos``, etc. are supported via native GPU implementations and can be used in exactly the same way as standard C code. Likewise additional *helper* functions can be defined and called from agent functions by prefixing the helper function using the ``__FLAME_GPU_FUNC__`` macro (which signifies it can be run on the GPU device).
+- Include Directives: Are permitted, however, as agent functions are functions which are run on the GPU during simulation, they may not call non GPU code. This implies that including and linking with non CUDA libraries is not supported.
+- External Function Calls: As above external function calls may only be made to CUDA ``__device__`` functions. Many common math functions calls such as ``sin``, ``cos``, etc. are supported via native GPU implementations and can be used in exactly the same way as standard C code. Likewise, additional *helper* functions can be defined and called from agent functions by prefixing the helper function using the ``__FLAME_GPU_FUNC__`` macro (which signifies it can be run on the GPU device).
 
 The following chapter describes the syntax and use of agent function scripts including any arguments which must be passed to the agent or simulation API functions.
 As agent functions and simulation API functions are dynamic (and based on the XMML model definition) it is often easier to first define a model and use the technique described within :ref:`Generating a Functions File Template` to automatically generate a functions file containing prototype agent function files and API system calls.
@@ -29,7 +29,7 @@ Agent and Message Data Structures
 =================================
 
 Access to agent and message data within the agent function scripts is provided through the use of agent and message data structures which contain variables matching those defined within the XMML definitions.
-For each agent in the simulation a structure is defined within the dynamically generated ``header.h`` with the name ``xmachine_memory_agent_*name*``, likewise each message defines a structure with the name ``xmachine_message_message_*name*`` where ``*name**`` represents the agent or message ``name`` from the model description respectively.
+For each agent in the simulation a structure is defined within the dynamically generated ``header.h`` with the name ``xmachine_memory_agent_*name*``, likewise, each message defines a structure with the name ``xmachine_message_message_*name*`` where ``*name**`` represents the agent or message ``name`` from the model description respectively.
 In both cases the structures contain a number of private variables prefixed with an underscore (e.g. ``_``) which are used internally by the API functions and should not be modified by the user.
 In addition to this the simulation API defines structures of arrays to hold agent and message list information.
 Agent lists are named ``xmachine_memory_agent_*name*_list`` and message lists are named \``xmachine_message_message_*name*_list``.
@@ -40,7 +40,7 @@ A Basic Agent Function
 ======================
 
 
-The following example shows a simplistic agent function ``function1`` which has no message input or output and only updates the agents internal memory.
+The following example shows a simplistic agent function ``function1`` which has no message input or output and only updates the agent's internal memory.
 All FLAME GPU agent functions are first prefixed with the macro definition ``__FLAME_GPU_FUNC__``.
 In this basic example the agent function has only a single argument, a pointer to an agent structure of type ``xmachine_memory_myAgent`` called ``xmemory``.
 In the below example the agent ``name`` is ``myAgent`` and the agent memory contains two variables ``x`` and ``no_movements`` of type ``float`` and ``int`` respectively.
@@ -75,7 +75,7 @@ Agent functions may only call a message output function for the message name def
 This restriction is enforced as message output functions require a pointer to a message list which is passed as an argument to the agent function.
 Agents are only permitted to output at most a single message per agent function and repeated calls to an add message function will result in previous message information simply being overwritten.
 The example below demonstrates an agent function ``output_message`` belonging to an agent named ``myAgent`` which outputs a message with the name ``location`` defined as having four variables.
-For clarity the message output function prototype (normally found in ``header.h``) is also shown.
+For clarity, the message output function prototype (normally found in ``header.h``) is also shown.
 
 .. code-block:: c
    :linenos:
@@ -111,9 +111,9 @@ In general two functions are provided for each named message, a ``get_first_*nam
 The arguments of these functions differ slightly depending on the partitioning scheme used by the message.
 The following subsections describe these in more detail.
 Regardless of the partitioning type a number of important rules must be observed when using the message functions.
-Firstly it is essential that message loop complete naturally.
+Firstly, it is essential that message loop completes naturally.
 I.e. the ``get_next_*name*_message`` function must be called without breaking from the while loop until the end of the message list is reached.
-Secondly agent functions must not directly modify messages returned from the get message functions.
+Secondly, agent functions must not directly modify messages returned from the get message functions.
 Changing message data directly will result in undefined behaviour and will most likely crash the simulation 
 
 
@@ -177,7 +177,7 @@ Spatially Partitioned Message Iteration
 
 For spatially partitioned messages the dynamically generated message API functions rely on the use of a Partition Boundary Matrix (PBM).
 The PBM holds important information which determines which agents are located within the spatially partitioned areas making up the simulation environment.
-Wherever a spatially partitioned message is defined as a function input (within the XMML model definition) a PMB argument should directly follow the input message list in the list of agent function arguments.
+Wherever a spatially partitioned message is defined as a function input (within the XMML model definition) a PBM argument should directly follow the input message list in the list of agent function arguments.
 As with non partitioned messages the first argument of the get first message API function is the input message list.
 The second argument is the PBM and the subsequent three arguments represent the position which the agent would like to read messages from (which in almost all cases is the agent position).
 The get next message API function differs only from the non partitioned example in that the PBM is passed as an additional parameter.
@@ -185,7 +185,7 @@ The example below shows the same example as in the previous section but using a 
 The differences between the function arguments in the previous section are highlighted in red as is the use of a helper function ``in_range``.
 The purpose of the ``in_range`` function is to check the distance between the agent position and the message.
 This is important as the messages returned by the get next message function represent any messages within the same or adjacent partitioning cells (to the position specified by the get first message API function).
-On average roughly :math:`1/3` of these values will be within the actually range specified by the message definitions range value.
+On average roughly :math:`1/3` of these values will be within the actual range specified by the message definitions range value.
 
 
 .. code-block:: c
@@ -244,7 +244,7 @@ The two integer arguments represent the position which the agent would like to r
 These values of these arguments must therefore be within the width and height of the message space itself (the square of the messages ``bufferSize``).
 In addition to the additional arguments, the discrete message API functions also make use of template parameterisation to distinguish between the type of agent requesting message information.
 The template parameters which may be used are either ``DISCRETE_2D`` (as in the example below) or ``CONTINUOUS``.
-This parameterisation is required as underlying implementation of the message API functions differs between the two agent types.
+This parameterisation is required as the underlying implementation of the message API functions differs between the two agent types.
 The example below shows an agent function (``input_messages``) of a discrete agent (named ``cell``) which iterates a message list (of state messages) to count the number neighbours with a state value of ``1``.
 
 .. The differences between the function arguments in the section describing non partitioned message iteration are highlighted in red as is the function parameterisation.
@@ -272,7 +272,7 @@ The example below shows an agent function (``input_messages``) of a discrete age
 Graph Edge Partitioned Message Iteration
 ----------------------------------------
 
-For graph edge partitioned messages the dynamically generated message API functions rely on the use of a message boundary structure. The structure holds important information which determines which messages belong to each edge of the graph data structure. 
+For graph edge partitioned messages, the dynamically generated message API functions rely on the use of a message boundary structure. The structure holds important information which determines which messages belong to each edge of the graph data structure. 
  As with other message types the first argument is the input message list. 
  The second argument is the message boundary structure, and the third argument is the id of the edge for which messages should be loaded (usually the edge where the agent is located).
  The ``get_next`` message API function differs only from the non partitioned example in that the message boundary structure is passed as an additional parameter.
@@ -321,7 +321,7 @@ I.e.
     #define xmachine_message_MESSAGE_partitioningSpatial
     #define xmachine_message_MESSAGE_partitioningGraphEdge
 
-These macros can then be used to write a single ``functions.c`` file which can be used with different partitioning shchemes in the ``XMLModelFile.XML``.
+These macros can then be used to write a single ``functions.c`` file which can be used with different partitioning schemes in the ``XMLModelFile.XML``.
 
 .. code-block:: c
    :linenos:
@@ -351,7 +351,7 @@ These macros can then be used to write a single ``functions.c`` file which can b
 Use of the Agent Output Simulation API
 ======================================
 
-Within an agent function script, agent output is possible on the host from Init and Step functions, and on the device by using a agent output API function.
+Within an agent function script, agent output is possible on the host from Init and Step functions, and on the device by using an agent output API function.
 
 Agent Creation from the Host
 ----------------------------
@@ -360,12 +360,12 @@ Within ``__FLAME_GPU_INIT_FUNC`` and ``__FLAME_GPU_STEP_FUNC`` (or within custom
 
 Several steps must be followed to make use of this feature.
 
-1. Allocate enough host (CPU) memory for all as many agents as you would like to create within the host function.
+1. Allocate enough host (CPU) memory for as many agents as you would like to create within the host function.
 2. Populate the agent data on the host.
 3. Copy agent data from the host to the device.
 4. Deallocate host memory when it is no longer required.
 
-If agents are only create in an ``INIT`` function, then the above procedure can be local to that ``INIT`` function.
+If agents are only created in an ``INIT`` function, then the above procedure can be local to that ``INIT`` function.
 
 If agents are going to be created in ``STEP`` functions, it is more efficient to split this procedure over an ``INIT`` function, a ``STEP`` function and an ``EXIT`` function.
 In this case, in ``functions.c`` you should declare a host memory in the global scope. An ``INIT`` function is then used to allocate sufficient memory, agents are created in the ``STEP`` function and lastly the ``EXIT`` function is used to deallocate and free resources.
@@ -422,7 +422,7 @@ Where ``*name*`` refers to the value of the agents ``name`` element within the a
 Agent functions may only output a single type of agent and are only permitted to output a single agent per agent function.
 As with message outputs, repeated calls to an add agent function will result in previous agent information simply being overwritten.
 The example below demonstrates an agent function (``create_agent``) for an agent named ``myAgent`` which outputs a new agent by creating a clone of itself.
-For clarity the agent output API function prototype (normally found in ``header.h``) is also shown.
+For clarity, the agent output API function prototype (normally found in ``header.h``) is also shown.
 
 .. code-block:: c
    :linenos:
@@ -468,8 +468,8 @@ Using Random Number Generation
 ==============================
 
 Random number generation is provided via the ``rnd`` API function which uses template parameterisation to distinguish between either discrete (where a template parameter value of ``DISCRETE_2D`` should be used) or continuous (where a template parameter value of ``CONTINUOUS`` should be used) spaced agents.
-If a template parameter value is not specified then the simulation will assume a ``DISCRETE_2D`` value which will work in either case but is more computationally expensive.
-The API function has a single argument, a pointer to a ``RNG_rand48`` structure which contains random seeds and is passed to agent functions which specify a true value for the RNG element in the XMML function definition.
+If a template parameter value is not specified, then the simulation will assume a ``DISCRETE_2D`` value which will work in either case but is more computationally expensive.
+The API function has a single argument, a pointer to an ``RNG_rand48`` structure which contains random seeds and is passed to agent functions which specify a true value for the RNG element in the XMML function definition.
 The API function returns a pseudorandom `float` uniformly distributed within the range `[0.0,1.0)`.
 The example below shows a simple agent function (with no input or outputs) demonstrating the random number generation to determine if the agent should die.
 
@@ -570,7 +570,7 @@ Note that Exit functions are not executed by the default visualisation.
 Runtime Host Functions
 ======================
              
-Runtime host functions can be used to interact with the model outside of the main simulation loop. For example runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically these functions are used within step, init or exit functions however they can also be used within custom visualisations. In addition to the functionality in this section it is also possible to create agents on the host which are injected into the simulation (see :ref:`Agent Creation from the Host`).
+Runtime host functions can be used to interact with the model outside of the main simulation loop. For example, runtime host functions can be used to set simulation constants, gather analytics for plotting or sorting agents for rendering. Typically, these functions are used within step, init or exit functions however they can also be used within custom visualisations. In addition to the functionality in this section it is also possible to create agents on the host which are injected into the simulation (see :ref:`Agent Creation from the Host`).
              
 Getting and Setting Simulation Constants (Global Variables)
 -----------------------------------------------------------
@@ -633,7 +633,7 @@ In addition, for each member variable defined for each vertex, and each edge a f
 Sorting Agents
 --------------
 
-Each `CONTINUOUS` type agent can be sorted based on key value pairs which come from agent variables. This can be particularly useful for rendering. A function for sorting each agent (named `*agent*`) state list (in the below example the state is named `default`) is created with the folowing format.
+Each `CONTINUOUS` type agent can be sorted based on key value pairs which come from agent variables. This can be particularly useful for rendering. A function for sorting each agent (named `*agent*`) state list (in the below example the state is named `default`) is created with the following format.
 
 .. code-block:: c
 
@@ -686,7 +686,7 @@ The value `xmachine_memory_agent_MAX` is the buffer size of number of agents (se
 Analytics Functions
 -------------------
 
-A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count*, *min* and *max* functions will only be created for single-value (not array) variables. Count functions are limited to `int` type variables (including short, long and vector type variants), min and max functions are limited to non vector type variables (e.g. no dvec2 type of variables). Reduce functions sum over a particular variable variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for agent agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
+A dynamically generated *reduce* function is made for all agent variables for each state. A dynamically generated *count*, *min* and *max* functions will only be created for single-value (not array) variables. Count functions are limited to `int` type variables (including short, long and vector type variants), min and max functions are limited to non vector type variables (e.g. no dvec2 type of variables). Reduce functions sum over a particular variable for all agents in the state list and returns the total. Count functions check how many values are equal to the given input and returns the quantity that match. These *analytics* functions are typically used with  init, step and exit functions to calculate averages or distributions of a given variable. E.g. for an agent with a *name* of `agentName`, *state* of `default` and an `int` variable name `varName` the following analytics functions will be created.
 
 .. code-block:: c
    :linenos:
@@ -709,7 +709,7 @@ For non-array agent variables, a single argument ``index`` refers to the positio
 For array agent variables, two arguments are required, ``index`` and ``element``, where ``index`` is the agent position within the state list, and ``element`` is the 0 indexed element of the agent array. 
 I.e. ``get_AGENT_STATE_variable_ARRAY(0, 2)`` would return the 2nd element of the agent variable ``ARRAY`` for the 0th ``AGENT`` agent in the state ``STATE``.
 
-This enables the creation of custom agent output functions as step functions, if you do not require all agent data in output XML files. For instance, it can be used to create a CSV file. See the ``customOutputStepFunc`` step function for the ``HostAgentCreation`` example.
+This enables the creation of custom agent output functions as step functions if you do not require all agent data in output XML files. For instance, it can be used to create a CSV file. See the ``customOutputStepFunc`` step function for the ``HostAgentCreation`` example.
 
 
 Exiting the Simulation Early

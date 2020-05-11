@@ -30,8 +30,8 @@ Technically, the FLAME GPU framework is not a simulator, it is instead a
 template-based simulation environment that maps formal descriptions of
 agents into simulation code. The representation of an agent is based on
 the concept of a communicating X-Machine (which is an extension to the
-Finite State Machine which includes memory). Whilst the X-Machine has
-very formal definition X-Machine agents can be thought of as state
+Finite State Machine which includes memory). Whilst the X-Machine has a
+very formal definition, X-Machine agents can be thought of as state
 machines able to communicate via messages stored in
 globally accessible message lists. Agent functionality is exposed as a
 set of state transition functions which move agents from one internal
@@ -42,13 +42,13 @@ be passed to the message lists for other agents to read). FLAME GPU uses
 agent function scripting for this purpose where the script is defined in a
 number of *Agent Function Files*. Simulation models are specified using
 a format called X-Machine Mark-up Language (*XMML*) which is XML syntax
-with Schemas governing the content. A typically XMML model file consists
+with Schemas governing the content. A typical XMML model file consists
 of a definition of a number of X-Machine agents (including state and
 memory information as well as a set of agent transition functions), a
 number of message types (each of which has a globally accessible message
 list) and a set of simulation layers which define the execution order of
-agent functions (which constitutes a single simulation iteration).
-Throughout a simulation, agent data is persistent however message
+agent functions (which constitute a single simulation iteration).
+Throughout a simulation, agent data is persistent, however, message
 information (and in particular message lists) is persistent only over
 the lifecycle of a single iteration. This allows a mechanism for agents
 to iteratively interact in a way which allows the emergent global group

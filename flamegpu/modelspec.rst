@@ -221,8 +221,11 @@ As all memory is pre-allocated on the GPU a ``bufferSize`` is required to repres
 That is the maximum number of x-machine agent instances of the format described by the XMML model.
 There is no performance disadvantage to using a large ``bufferSize`` however it is the user's responsibility to ensure that the GPU contains enough memory to support large populations of agents.
 It is recommended that the bufferSize always be a power of two number (i.e. ``1024``, ``2048``, ``4096``, ``16384``, etc) as it will most likely be rounded to one during simulation.
-For discrete agents, the bufferSize is strictly limited to only power of 2 numbers which have squarely divisible dimensions (i.e. the square of the bufferSize must be a whole number).
-If at any point in the simulation exceeds the stated ``bufferSize`` then the user will be warned at the simulation will exit. Care must be taken when defining the value of bufferSize. Any datatype which would exceed the stack limit of 2GB (calculated as bufferSize*sizeof(agent variable data type) will fail to build under windows. E.g. This limits the bufferSize for 4byte variables (int, float, etc) to 62.5 million.
+For discrete agents, the bufferSize is strictly limited to only numbers that are both square and a power of 2, i.e. powers of 4.
+
+e.g. ``2048`` is not valid because it is not a square number.
+
+If at any point the number of agent instances in the simulation exceeds the stated ``bufferSize`` then the user will be warned and the simulation will exit. Care must be taken when defining the value of bufferSize. Any datatype which would exceed the stack limit of 2GB (calculated as bufferSize*sizeof(agent variable data type) will fail to build under windows. E.g. This limits the bufferSize for 4byte variables (int, float, etc) to 62.5 million.
 
 Each expandable aspect of an XMML agent representation in the below example is discussed within this section with the exception of agent functions, which due to their dependence of the definition of messages, are discussed later in :ref:`Defining an Agent function`.
 
@@ -386,7 +389,7 @@ a range of ``1`` will iterate ``(3x3)-1=8`` messages, a range of ``2`` will iter
 When iterating messages, the environment is wrapped in the ``x`` and ``y`` axis to form a torus.
 This means that the radius value used should be less than or equal to ``floor((sqrt(bufferSize) - 1) / 2)`` to avoid the same message being read multiple times.
 In addition to this the agent memory is expected to contain an ``x`` and ``y`` variable of ``type`` ``int``.
-As with discrete agents it is important to ensure that messages using discrete partitioning use only supported buffer sizes (power of 2 and squarely divisible). The width and height of the discrete message space is then defined as the square of the ``bufferSize`` value. 
+As with discrete agents it is important to ensure that messages using discrete partitioning use only supported buffer sizes (numbers that are both square and a power of 2, i.e. powers of 4). The width and height of the discrete message space is then defined as the square root of the ``bufferSize`` value. 
 
 .. code-block:: xml
    :linenos:

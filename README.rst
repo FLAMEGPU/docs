@@ -7,6 +7,8 @@ FLAME GPU 1 Technical Report and User Guide Documentation
 
 This is the RST version of the FLAME GPU 1 Technical report and user guide. The documentation has been moved from latex to RST with version control via github. 
 
+Note: For FLAME GPU 2 documentation please see [https://github.com/FLAMEGPU/FLAMEGPU2-docs](https://github.com/FLAMEGPU/FLAMEGPU2-docs).
+
 
 How to Contribute
 -----------------

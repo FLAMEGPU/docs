@@ -1,11 +1,11 @@
-FLAME GPU Technical Report and User Guide Documentation
+FLAME GPU 1 Technical Report and User Guide Documentation
 =======================================================
 
 .. image:: https://readthedocs.org/projects/flamegpu/badge/?version=master
    :target: http://flamegpu.readthedocs.io/en/latest/?badge=master
    :alt: Documentation Status
 
-This is the RST version of the FLAME GPU Technical report and user guide. The documentation has been moved from latex to RST with version control via github. 
+This is the RST version of the FLAME GPU 1 Technical report and user guide. The documentation has been moved from latex to RST with version control via github. 
 
 
 How to Contribute
